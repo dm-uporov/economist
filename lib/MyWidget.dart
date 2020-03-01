@@ -6,7 +6,7 @@ class MyWidget extends StatefulWidget {
   _MyWidgetState createState() => _MyWidgetState();
 }
 
-class _MyWidgetState extends State<MyWidget> with TickerProviderStateMixin {
+class _MyWidgetState extends State<MyWidget> {
   var _defaultWidth = 48.0;
   var _defaultHeight = 48.0;
 
@@ -18,27 +18,10 @@ class _MyWidgetState extends State<MyWidget> with TickerProviderStateMixin {
 
   var _alignment = Alignment.bottomRight;
 
-  static const _DURATION = Duration(milliseconds: 500);
+  static const _DURATION = Duration(milliseconds: 200);
 
   @override
   Widget build(BuildContext context) {
-    AnimationController _controller;
-
-    @override
-    void initState() {
-      super.initState();
-      _controller = AnimationController(
-        duration: _DURATION,
-        vsync: this,
-      )..repeat();
-    }
-
-    @override
-    void dispose() {
-      _controller.dispose();
-      super.dispose();
-    }
-
     return AnimatedContainer(
       duration: _DURATION,
       alignment: _alignment,
