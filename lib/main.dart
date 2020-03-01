@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'MyWidget.dart';
+import 'PanableBall.dart';
 
 void main() => runApp(MyApp());
 
@@ -61,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: MyWidget(),
+      body: PanableBall(),
     );
   }
 }

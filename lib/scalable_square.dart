@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-class MyWidget extends StatefulWidget {
+class ScalableSquare extends StatefulWidget {
   @override
-  _MyWidgetState createState() => _MyWidgetState();
+  _ScalableSquareState createState() => _ScalableSquareState();
 }
 
-class _MyWidgetState extends State<MyWidget> {
+class _ScalableSquareState extends State<ScalableSquare> {
+
+  static const _DURATION = Duration(milliseconds: 200);
+  static const _PADDING = 10.0;
+
   var _defaultWidth = 48.0;
   var _defaultHeight = 48.0;
 
@@ -18,16 +22,13 @@ class _MyWidgetState extends State<MyWidget> {
 
   var _alignment = Alignment.bottomRight;
 
-  static const _DURATION = Duration(milliseconds: 200);
-
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: _DURATION,
       alignment: _alignment,
       child: Padding(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+        padding: EdgeInsets.all(_PADDING),
         child: GestureDetector(
           onPanStart: (details) {
             _startXPosition = details.localPosition.dx;
@@ -59,7 +60,6 @@ class _MyWidgetState extends State<MyWidget> {
             color: Colors.black,
           ),
         ),
-        padding: EdgeInsets.all(10.0),
       ),
     );
   }
