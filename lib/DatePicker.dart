@@ -9,15 +9,15 @@ class DatePicker extends StatefulWidget {
 }
 
 class _DatePickerState extends State<DatePicker> {
-
   final _lineHeight = 30.0;
   final _selectorWidth = 30.0;
   final _selectorHeight = 80.0;
-  final _selectorStrokeWidth = 10.0;
+  final _selectorStrokeWidth = 8.0;
   final _selectorCircleRadius = 20.0;
   final _selectorCircleIncreasedRadius = 40.0;
 
-  var _positionX = 100.0;
+  var _firstSelectorPosition = 100.0;
+  var _secondSelectorPosition = 200.0;
 
   @override
   Widget build(BuildContext context) {
@@ -28,12 +28,24 @@ class _DatePickerState extends State<DatePicker> {
           height: _selectorHeight,
           child: DatePickerLine(
             height: _lineHeight,
+            onTap: (details) {
+              setState(() {
+                final tapPosition = details.globalPosition.dx;
+                final firstSelectorDelta = tapPosition - _firstSelectorPosition;
+                final secondSelectorDelta = tapPosition - _secondSelectorPosition;
+                if (firstSelectorDelta.abs() < secondSelectorDelta.abs()) {
+                  _firstSelectorPosition = tapPosition - (_selectorWidth / 2);
+                } else {
+                  _secondSelectorPosition = tapPosition - (_selectorWidth / 2);
+                }
+              });
+            },
             onPanUpdate: (details) {},
           ),
         ),
         AnimatedPositioned(
           duration: Duration(milliseconds: 100),
-          left: _positionX,
+          left: _firstSelectorPosition,
           child: DatePickerSelector(
             width: _selectorWidth,
             height: _selectorHeight,
@@ -42,7 +54,23 @@ class _DatePickerState extends State<DatePicker> {
             circleIncreasedRadius: _selectorCircleIncreasedRadius,
             onPanUpdate: (details) {
               setState(() {
-                _positionX = details.globalPosition.dx - (_selectorWidth / 2);
+                _firstSelectorPosition = details.globalPosition.dx - (_selectorWidth / 2);
+              });
+            },
+          ),
+        ),
+        AnimatedPositioned(
+          duration: Duration(milliseconds: 100),
+          left: _secondSelectorPosition,
+          child: DatePickerSelector(
+            width: _selectorWidth,
+            height: _selectorHeight,
+            strokeWidth: _selectorStrokeWidth,
+            circleRadius: _selectorCircleRadius,
+            circleIncreasedRadius: _selectorCircleIncreasedRadius,
+            onPanUpdate: (details) {
+              setState(() {
+                _secondSelectorPosition = details.globalPosition.dx - (_selectorWidth / 2);
               });
             },
           ),

@@ -132,8 +132,8 @@ class _DatePickerSelectorPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final centerX = size.width / 2;
     final paint = Paint()
-      ..color = Colors.blue
-      ..strokeWidth = 6.0;
+      ..color = Colors.lightBlueAccent
+      ..strokeWidth = strokeWidth;
     canvas.drawLine(
       Offset(centerX, 0),
       Offset(centerX, size.height),
