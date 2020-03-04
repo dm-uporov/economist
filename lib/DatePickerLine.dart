@@ -1,112 +1,183 @@
 import 'package:flutter/material.dart';
 
 class DatePickerLine extends StatefulWidget {
-  const DatePickerLine({height, onTap, onPanUpdate})
-      : _height = height,
+  const DatePickerLine({mainLineHeight, onTap, onPanUpdate})
+      : _mainLineHeight = mainLineHeight,
         _onTap = onTap,
         _onPanUpdate = onPanUpdate;
 
-  final double _height;
+  final double _mainLineHeight;
   final GestureTapDownCallback _onTap;
   final GestureDragUpdateCallback _onPanUpdate;
 
   @override
   _DatePickerLineState createState() =>
-      _DatePickerLineState(_height, _onTap, _onPanUpdate);
+      _DatePickerLineState(_mainLineHeight, _onTap, _onPanUpdate);
 }
 
 class _DatePickerLineState extends State<DatePickerLine>
     with SingleTickerProviderStateMixin {
-  _DatePickerLineState(height, onTap, onPanUpdate)
-      : _height = height,
+  _DatePickerLineState(mainLineHeight, onTap, onPanUpdate)
+      : _mainLineHeight = mainLineHeight,
         _onTap = onTap,
         _onPanUpdate = onPanUpdate;
 
-  final double _height;
+  final double _mainLineHeight;
   final GestureTapDownCallback _onTap;
   final GestureDragUpdateCallback _onPanUpdate;
+  double _lineOffset = 0.0;
+  double _panStartPosition = 0.0;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: _onTap,
-      onPanUpdate: _onPanUpdate,
+//      onTapDown: _onTap,
+      onPanStart: (details) {
+        _panStartPosition = details.globalPosition.dx;
+      },
+      onPanUpdate: (details) {
+        setState(() {
+          _lineOffset -= details.delta.dx;
+        });
+      },
+      onPanCancel: () => _panStartPosition = 0.0,
+      onPanEnd: (details) => _panStartPosition = 0.0,
       child: CustomPaint(
-        size: Size(1000, _height),
-        painter: _LinePainter(_height),
+        size: Size(MediaQuery.of(context).size.width, _mainLineHeight),
+        painter: _LinePainter(
+          mainLineHeight: _mainLineHeight,
+          offset: _lineOffset,
+        ),
       ),
     );
   }
 }
 
 class _LinePainter extends CustomPainter {
-  _LinePainter(height) : _height = height;
+  _LinePainter({
+    double mainLineHeight,
+    double sectorWidth = 10.0,
+    double sectorStrokeWidth = 2.0,
+    double sectorStrokeHeight = 12.0,
+    double bigSectorStrokeHeight = 24.0,
+    double batchStrokeHeight = 48.0,
+    double titleTextSize = 15.0,
+    double subtitleTextSize = 15.0,
+    double offset = 0.0,
+  })  : _mainLineHeight = mainLineHeight,
+        _sectorWidth = sectorWidth,
+        _sectorStrokeWidth = sectorStrokeWidth,
+        _sectorStrokeHeight = sectorStrokeHeight,
+        _bigSectorStrokeHeight = bigSectorStrokeHeight,
+        _batchStrokeHeight = batchStrokeHeight,
+        _offset = offset,
+        _subtitleTextSize = subtitleTextSize,
+        _titleTextSize = titleTextSize,
+        _linePaint = Paint()
+          ..color = Colors.blue
+          ..strokeWidth = mainLineHeight,
+        _strokePaint = Paint()
+          ..color = Colors.white70
+          ..strokeWidth = sectorStrokeWidth,
+        _titleTextStyle = TextStyle(
+          color: Colors.black87,
+          fontSize: titleTextSize,
+        ),
+        _subtitleTextStyle = TextStyle(
+          color: Colors.black54,
+          fontSize: subtitleTextSize,
+        );
 
-  final double _height;
-  final double _sectorWidth = 10.0;
-  final double _sectorStrokeWidth = 2.0;
-  final double _sectorStrokeHeight = 7.0;
-  final double _batchStrokeHeight = 15.0;
-  final double _bigBatchStrokeHeight = 30.0;
+  final double _mainLineHeight;
+  final double _sectorWidth;
+  final double _sectorStrokeWidth;
+  final double _sectorStrokeHeight;
+  final double _bigSectorStrokeHeight;
+  final double _batchStrokeHeight;
+  final double _offset;
 
-  final double _sectorsBatchSize = 5;
-  final double _sectorsBigBatchSize = 31;
+  final double _titleTextSize;
+  final double _subtitleTextSize;
 
-  final double _batchTitleSize = 15.0;
+  final double _bigSectorsOffset = 5;
+  final double _batchSize = 31;
+
+  final Paint _linePaint;
+  final Paint _strokePaint;
+  final TextStyle _titleTextStyle;
+  final TextStyle _subtitleTextStyle;
+  final _textDirection = TextDirection.ltr;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.blue
-      ..strokeWidth = _height;
-    final centerOfLine = _height / 2;
-    canvas.drawLine(
-      Offset(0, centerOfLine),
-      Offset(size.width, centerOfLine),
-      paint,
-    );
+    drawMainLine(canvas, size);
 
-    final sectorBorderPaint = Paint()
-      ..color = Colors.white70
-      ..strokeWidth = _sectorStrokeWidth;
+    final hiddenSectorsSize = (_offset / _sectorWidth).ceil();
+    final startOffset = _offset % _sectorWidth;
 
-    var sectorBorderPosition = _sectorWidth;
-    var counter = 0;
+    var sectorBorderPosition = -startOffset;
+//
+//    final first = hiddenSectorsSize % _batchSize;
+//    final second = _offset ~/ _sectorWidth;
+//    if (first != second) {
+//      print("offset = $_offset, _sectorWidth = $_sectorWidth\nfirst = $first, second = $second");
+//    }
+//
+    var counter = (hiddenSectorsSize % _batchSize).ceil();
     while (sectorBorderPosition < size.width) {
       counter++;
-      double yPosition;
-      if (counter % _sectorsBigBatchSize == 0) {
-        yPosition = _height - _bigBatchStrokeHeight;
+      double strokeHeight;
+      if (counter % _batchSize == 0) {
+        strokeHeight = _batchStrokeHeight;
+        if (counter % _bigSectorsOffset == 0) {
+          drawSubtitle(canvas, sectorBorderPosition, "$counter");
+        }
         counter = 0;
-      } else if (counter % _sectorsBatchSize == 0) {
-        yPosition = _height - _batchStrokeHeight;
-
-        final textPainter = TextPainter(
-          text: TextSpan(
-            text: "$counter",
-            style: TextStyle(color: Colors.black, fontSize: _batchTitleSize),
-          ),
-          textDirection: TextDirection.ltr,
-        );
-        textPainter.layout();
-        textPainter.paint(
-            canvas,
-            Offset(
-              sectorBorderPosition -
-                  (_batchTitleSize / 2) -
-                  (_sectorStrokeWidth / 2),
-              _height,
-            ));
+      } else if (counter % _bigSectorsOffset == 0) {
+        strokeHeight = _bigSectorStrokeHeight;
+        drawSubtitle(canvas, sectorBorderPosition, "$counter");
       } else {
-        yPosition = _height - _sectorStrokeHeight;
+        strokeHeight = _sectorStrokeHeight;
       }
-      canvas.drawLine(
-        Offset(sectorBorderPosition, yPosition),
-        Offset(sectorBorderPosition, _height),
-        sectorBorderPaint,
-      );
+
+      drawStroke(canvas, sectorBorderPosition, strokeHeight);
       sectorBorderPosition += _sectorWidth;
     }
+  }
+
+  void drawMainLine(Canvas canvas, Size size) {
+    canvas.drawLine(
+      Offset(0, _mainLineHeight / 2),
+      Offset(size.width, _mainLineHeight / 2),
+      _linePaint,
+    );
+  }
+
+  void drawStroke(Canvas canvas, double xPosition, double height) {
+    canvas.drawLine(
+      Offset(xPosition, _mainLineHeight - height),
+      Offset(xPosition, _mainLineHeight),
+      _strokePaint,
+    );
+  }
+
+  void drawTitle(Canvas canvas, double position, String title) {}
+
+  void drawSubtitle(Canvas canvas, double position, String subtitle) {
+    TextPainter textPainter = TextPainter(
+      text: TextSpan(text: subtitle, style: _subtitleTextStyle),
+      textDirection: _textDirection,
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(
+        position -
+            (subtitle.length * _subtitleTextSize / 2 / 2) -
+            (_sectorStrokeWidth / 2),
+        _mainLineHeight,
+      ),
+    );
   }
 
   @override

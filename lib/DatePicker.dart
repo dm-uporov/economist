@@ -9,13 +9,14 @@ class DatePicker extends StatefulWidget {
 }
 
 class _DatePickerState extends State<DatePicker> {
-  final _lineHeight = 30.0;
+  final _lineHeight = 48.0;
   final _selectorWidth = 30.0;
-  final _selectorHeight = 80.0;
+  final _selectorHeight = 96.0;
   final _selectorStrokeWidth = 4.0;
   final _selectorCircleRadius = 20.0;
   final _selectorCircleIncreasedRadius = 40.0;
 
+  var _lineOffset = 0.0;
   var _firstSelectorPosition = 100.0;
   var _secondSelectorPosition = 200.0;
 
@@ -27,7 +28,8 @@ class _DatePickerState extends State<DatePicker> {
         Positioned(
           height: _selectorHeight,
           child: DatePickerLine(
-            height: _lineHeight,
+//            offset: _lineOffset,
+            mainLineHeight: _lineHeight,
             onTap: (details) {
               setState(() {
                 final tapPosition = details.globalPosition.dx;
@@ -40,7 +42,11 @@ class _DatePickerState extends State<DatePicker> {
                 }
               });
             },
-            onPanUpdate: (details) {},
+            onPanUpdate: (details) {
+              setState(() {
+                _lineOffset -= details.delta.dx;
+              });
+            },
           ),
         ),
         AnimatedPositioned(
