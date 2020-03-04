@@ -40,11 +40,7 @@ class _DatePickerState extends State<DatePicker> {
                 }
               });
             },
-            onPanUpdate: (details) {
-              setState(() {
-                _lineOffset -= details.delta.dx;
-              });
-            },
+            onPanUpdate: (details) {},
           ),
         ),
         AnimatedPositioned(
