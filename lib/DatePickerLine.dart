@@ -1,29 +1,25 @@
 import 'package:flutter/material.dart';
 
 class DatePickerLine extends StatefulWidget {
-  const DatePickerLine({mainLineHeight, onTap, onPanUpdate})
+  const DatePickerLine({mainLineHeight, onPanUpdate})
       : _mainLineHeight = mainLineHeight,
-        _onTap = onTap,
         _onPanUpdate = onPanUpdate;
 
   final double _mainLineHeight;
-  final GestureTapDownCallback _onTap;
   final GestureDragUpdateCallback _onPanUpdate;
 
   @override
   _DatePickerLineState createState() =>
-      _DatePickerLineState(_mainLineHeight, _onTap, _onPanUpdate);
+      _DatePickerLineState(_mainLineHeight, _onPanUpdate);
 }
 
 class _DatePickerLineState extends State<DatePickerLine>
     with SingleTickerProviderStateMixin {
-  _DatePickerLineState(mainLineHeight, onTap, onPanUpdate)
+  _DatePickerLineState(mainLineHeight, onPanUpdate)
       : _mainLineHeight = mainLineHeight,
-        _onTap = onTap,
         _onPanUpdate = onPanUpdate;
 
   final double _mainLineHeight;
-  final GestureTapDownCallback _onTap;
   final GestureDragUpdateCallback _onPanUpdate;
   double _lineOffset = 0.0;
   double _panStartPosition = 0.0;
@@ -31,7 +27,6 @@ class _DatePickerLineState extends State<DatePickerLine>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: _onTap,
       onPanStart: (details) {
         _panStartPosition = details.globalPosition.dx;
       },
@@ -175,6 +170,6 @@ class _LinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
-    return oldDelegate is _LinePainter && false;
+    return oldDelegate is _LinePainter && _offset != oldDelegate._offset;
   }
 }
