@@ -65,8 +65,8 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
   void initState() {
     super.initState();
     _increaseAnimationController = AnimationController(
-        duration: const Duration(milliseconds: 1000),
-        reverseDuration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 700),
+        reverseDuration: const Duration(milliseconds: 200),
         vsync: this);
   }
 

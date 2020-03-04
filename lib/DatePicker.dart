@@ -12,7 +12,7 @@ class _DatePickerState extends State<DatePicker> {
   final _lineHeight = 30.0;
   final _selectorWidth = 30.0;
   final _selectorHeight = 80.0;
-  final _selectorStrokeWidth = 8.0;
+  final _selectorStrokeWidth = 4.0;
   final _selectorCircleRadius = 20.0;
   final _selectorCircleIncreasedRadius = 40.0;
 
