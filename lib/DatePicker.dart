@@ -16,7 +16,6 @@ class _DatePickerState extends State<DatePicker> {
   final _selectorCircleRadius = 20.0;
   final _selectorCircleIncreasedRadius = 40.0;
 
-  var _lineOffset = 0.0;
   var _firstSelectorPosition = 100.0;
   var _secondSelectorPosition = 200.0;
 
@@ -28,7 +27,6 @@ class _DatePickerState extends State<DatePicker> {
         Positioned(
           height: _selectorHeight,
           child: DatePickerLine(
-//            offset: _lineOffset,
             mainLineHeight: _lineHeight,
             onTap: (details) {
               setState(() {

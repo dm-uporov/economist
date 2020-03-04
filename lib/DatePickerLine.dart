@@ -31,7 +31,7 @@ class _DatePickerLineState extends State<DatePickerLine>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-//      onTapDown: _onTap,
+      onTapDown: _onTap,
       onPanStart: (details) {
         _panStartPosition = details.globalPosition.dx;
       },
@@ -116,13 +116,6 @@ class _LinePainter extends CustomPainter {
     final startOffset = _offset % _sectorWidth;
 
     var sectorBorderPosition = -startOffset;
-//
-//    final first = hiddenSectorsSize % _batchSize;
-//    final second = _offset ~/ _sectorWidth;
-//    if (first != second) {
-//      print("offset = $_offset, _sectorWidth = $_sectorWidth\nfirst = $first, second = $second");
-//    }
-//
     var counter = (hiddenSectorsSize % _batchSize).ceil();
     while (sectorBorderPosition < size.width) {
       counter++;
