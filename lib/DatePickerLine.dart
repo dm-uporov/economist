@@ -32,7 +32,6 @@ class _DatePickerLineState extends State<DatePickerLine>
     )..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           _lineStoppingAnimationController.removeListener(_moveLineByAnimation);
-          print("reset");
           _lineStoppingAnimationController.reset();
         }
       });
@@ -44,7 +43,6 @@ class _DatePickerLineState extends State<DatePickerLine>
         onHorizontalDragUpdate: (details) {
           setState(() {
             _lineOffset -= details.delta.dx;
-            print("!! $_lineOffset");
           });
         },
         onHorizontalDragEnd: (details) {
@@ -79,7 +77,6 @@ class _DatePickerLineState extends State<DatePickerLine>
   void _moveLineByAnimation() {
     setState(() {
       _lineOffset -= _lineStoppingAnimation.value;
-      print("$_lineOffset");
     });
   }
 
