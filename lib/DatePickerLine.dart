@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutterapp2020/main.dart';
 
 class DatePickerLine extends StatefulWidget {
   const DatePickerLine({mainLineHeight, onPanUpdate})
@@ -9,47 +10,114 @@ class DatePickerLine extends StatefulWidget {
   final GestureDragUpdateCallback _onPanUpdate;
 
   @override
-  _DatePickerLineState createState() =>
-      _DatePickerLineState(_mainLineHeight, _onPanUpdate);
+  _DatePickerLineState createState() => _DatePickerLineState(_mainLineHeight);
 }
 
 class _DatePickerLineState extends State<DatePickerLine>
     with SingleTickerProviderStateMixin {
-  _DatePickerLineState(mainLineHeight, onPanUpdate)
-      : _mainLineHeight = mainLineHeight,
-        _onPanUpdate = onPanUpdate;
+  _DatePickerLineState(mainLineHeight) : _mainLineHeight = mainLineHeight;
 
   final double _mainLineHeight;
-  final GestureDragUpdateCallback _onPanUpdate;
   double _lineOffset = 0.0;
-  double _panStartPosition = 0.0;
+
+  AnimationController _lineStoppingAnimationController;
+  Animation _lineStoppingAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _lineStoppingAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _lineStoppingAnimationController.removeListener(_moveLineByAnimation);
+          print("reset");
+          _lineStoppingAnimationController.reset();
+        }
+      });
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onPanStart: (details) {
-        _panStartPosition = details.globalPosition.dx;
-      },
-      onPanUpdate: (details) {
-        setState(() {
-          _lineOffset -= details.delta.dx;
-        });
-      },
-      onPanCancel: () => _panStartPosition = 0.0,
-      onPanEnd: (details) => _panStartPosition = 0.0,
-      child: CustomPaint(
-        size: Size(MediaQuery.of(context).size.width, _mainLineHeight),
-        painter: _LinePainter(
-          mainLineHeight: _mainLineHeight,
-          offset: _lineOffset,
-        ),
-      ),
-    );
+        onHorizontalDragUpdate: (details) {
+          setState(() {
+            _lineOffset -= details.delta.dx;
+            print("!! $_lineOffset");
+          });
+        },
+        onHorizontalDragEnd: (details) {
+          _lineStoppingAnimationController.removeListener(_moveLineByAnimation);
+          _lineStoppingAnimationController.forward();
+          _lineStoppingAnimation = Tween(
+            begin: details.velocity.pixelsPerSecond.dx / 100,
+            end: 0.0,
+          ).animate(CurvedAnimation(
+            parent: _lineStoppingAnimationController,
+            curve: Curves.easeOut,
+          ))
+            ..addListener(_moveLineByAnimation);
+        },
+        child: Stack(
+          children: <Widget>[
+            CustomPaint(
+              size: Size(MediaQuery.of(context).size.width, _mainLineHeight),
+              painter: _LineBackgroundPainter(_mainLineHeight),
+            ),
+            CustomPaint(
+              size: Size(MediaQuery.of(context).size.width, _mainLineHeight),
+              painter: _SectorsPainter(
+                mainLineHeight: _mainLineHeight,
+                offset: _lineOffset,
+              ),
+            ),
+          ],
+        ));
+  }
+
+  void _moveLineByAnimation() {
+    setState(() {
+      _lineOffset -= _lineStoppingAnimation.value;
+      print("$_lineOffset");
+    });
+  }
+
+  @override
+  void dispose() {
+    _lineStoppingAnimationController.dispose();
+    super.dispose();
   }
 }
 
-class _LinePainter extends CustomPainter {
-  _LinePainter({
+class _LineBackgroundPainter extends CustomPainter {
+  _LineBackgroundPainter(double mainLineHeight)
+      : _mainLineHeight = mainLineHeight,
+        _linePaint = Paint()
+          ..color = Colors.blue
+          ..strokeWidth = mainLineHeight;
+
+  final double _mainLineHeight;
+  final Paint _linePaint;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawLine(
+      Offset(0, _mainLineHeight / 2),
+      Offset(size.width, _mainLineHeight / 2),
+      _linePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return oldDelegate is _LineBackgroundPainter &&
+        _mainLineHeight != oldDelegate._mainLineHeight;
+  }
+}
+
+class _SectorsPainter extends CustomPainter {
+  _SectorsPainter({
     double mainLineHeight,
     double sectorWidth = 10.0,
     double sectorStrokeWidth = 2.0,
@@ -68,9 +136,6 @@ class _LinePainter extends CustomPainter {
         _offset = offset,
         _subtitleTextSize = subtitleTextSize,
         _titleTextSize = titleTextSize,
-        _linePaint = Paint()
-          ..color = Colors.blue
-          ..strokeWidth = mainLineHeight,
         _strokePaint = Paint()
           ..color = Colors.white70
           ..strokeWidth = sectorStrokeWidth,
@@ -97,7 +162,6 @@ class _LinePainter extends CustomPainter {
   final double _bigSectorsOffset = 5;
   final double _batchSize = 31;
 
-  final Paint _linePaint;
   final Paint _strokePaint;
   final TextStyle _titleTextStyle;
   final TextStyle _subtitleTextStyle;
@@ -105,8 +169,6 @@ class _LinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    drawMainLine(canvas, size);
-
     final hiddenSectorsSize = (_offset / _sectorWidth).ceil();
     final startOffset = _offset % _sectorWidth;
 
@@ -131,14 +193,6 @@ class _LinePainter extends CustomPainter {
       drawStroke(canvas, sectorBorderPosition, strokeHeight);
       sectorBorderPosition += _sectorWidth;
     }
-  }
-
-  void drawMainLine(Canvas canvas, Size size) {
-    canvas.drawLine(
-      Offset(0, _mainLineHeight / 2),
-      Offset(size.width, _mainLineHeight / 2),
-      _linePaint,
-    );
   }
 
   void drawStroke(Canvas canvas, double xPosition, double height) {
@@ -170,6 +224,6 @@ class _LinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
-    return oldDelegate is _LinePainter && _offset != oldDelegate._offset;
+    return oldDelegate is _SectorsPainter && _offset != oldDelegate._offset;
   }
 }
