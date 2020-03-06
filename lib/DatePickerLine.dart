@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutterapp2020/main.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 class DatePickerLine extends StatefulWidget {
-  const DatePickerLine({mainLineHeight, onPanUpdate})
-      : _mainLineHeight = mainLineHeight,
-        _onPanUpdate = onPanUpdate;
+  const DatePickerLine({mainLineHeight}) : _mainLineHeight = mainLineHeight;
 
   final double _mainLineHeight;
-  final GestureDragUpdateCallback _onPanUpdate;
 
   @override
   _DatePickerLineState createState() => _DatePickerLineState(_mainLineHeight);
@@ -57,6 +54,9 @@ class _DatePickerLineState extends State<DatePickerLine>
           ))
             ..addListener(_moveLineByAnimation);
         },
+        onTapDown: (_) {
+          _lineStoppingAnimationController.stop(canceled: false);
+        },
         child: Stack(
           children: <Widget>[
             CustomPaint(
@@ -68,6 +68,7 @@ class _DatePickerLineState extends State<DatePickerLine>
               painter: _SectorsPainter(
                 mainLineHeight: _mainLineHeight,
                 offset: _lineOffset,
+                initDate: DateTime.now(),
               ),
             ),
           ],
@@ -113,6 +114,9 @@ class _LineBackgroundPainter extends CustomPainter {
   }
 }
 
+const ONE_DAY = Duration(days: 1);
+const MIDDLE_DAY_OF_MONTH = 15;
+
 class _SectorsPainter extends CustomPainter {
   _SectorsPainter({
     double mainLineHeight,
@@ -124,13 +128,15 @@ class _SectorsPainter extends CustomPainter {
     double titleTextSize = 15.0,
     double subtitleTextSize = 15.0,
     double offset = 0.0,
+    DateTime initDate,
   })  : _mainLineHeight = mainLineHeight,
         _sectorWidth = sectorWidth,
         _sectorStrokeWidth = sectorStrokeWidth,
         _sectorStrokeHeight = sectorStrokeHeight,
         _bigSectorStrokeHeight = bigSectorStrokeHeight,
-        _batchStrokeHeight = batchStrokeHeight,
+        _monthsDividerStrokeHeight = batchStrokeHeight,
         _offset = offset,
+        _initDate = initDate,
         _subtitleTextSize = subtitleTextSize,
         _titleTextSize = titleTextSize,
         _strokePaint = Paint()
@@ -150,41 +156,48 @@ class _SectorsPainter extends CustomPainter {
   final double _sectorStrokeWidth;
   final double _sectorStrokeHeight;
   final double _bigSectorStrokeHeight;
-  final double _batchStrokeHeight;
+  final double _monthsDividerStrokeHeight;
   final double _offset;
+  final DateTime _initDate;
 
   final double _titleTextSize;
   final double _subtitleTextSize;
 
   final double _bigSectorsOffset = 5;
-  final double _batchSize = 31;
 
   final Paint _strokePaint;
   final TextStyle _titleTextStyle;
   final TextStyle _subtitleTextStyle;
-  final _textDirection = TextDirection.ltr;
+  final TextDirection _textDirection = TextDirection.ltr;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final hiddenSectorsSize = (_offset / _sectorWidth).ceil();
+    final daysScreenCapacity = (size.width / _sectorWidth).ceil();
+
+    final daysOffset = (_offset / _sectorWidth) - (daysScreenCapacity / 2);
     final startOffset = _offset % _sectorWidth;
 
     var sectorBorderPosition = -startOffset;
-    var counter = (hiddenSectorsSize % _batchSize).ceil();
+
+    DateTime date = _initDate.add(Duration(days: daysOffset.ceil()));
     while (sectorBorderPosition < size.width) {
-      counter++;
+      date = date.add(ONE_DAY);
       double strokeHeight;
-      if (counter % _batchSize == 0) {
-        strokeHeight = _batchStrokeHeight;
-        if (counter % _bigSectorsOffset == 0) {
-          drawSubtitle(canvas, sectorBorderPosition, "$counter");
+      // day is end of month
+      if (date.month != date.add(ONE_DAY).month) {
+        strokeHeight = _monthsDividerStrokeHeight;
+        if (date.day % _bigSectorsOffset == 0) {
+          drawSubtitle(canvas, sectorBorderPosition, "${date.day}");
         }
-        counter = 0;
-      } else if (counter % _bigSectorsOffset == 0) {
+      } else if (date.day % _bigSectorsOffset == 0) {
         strokeHeight = _bigSectorStrokeHeight;
-        drawSubtitle(canvas, sectorBorderPosition, "$counter");
+        drawSubtitle(canvas, sectorBorderPosition, "${date.day}");
       } else {
         strokeHeight = _sectorStrokeHeight;
+      }
+
+      if (date.day == MIDDLE_DAY_OF_MONTH) {
+        drawTitle(canvas, sectorBorderPosition, "${DateFormat.MMMM().format(date)}");
       }
 
       drawStroke(canvas, sectorBorderPosition, strokeHeight);
@@ -200,7 +213,22 @@ class _SectorsPainter extends CustomPainter {
     );
   }
 
-  void drawTitle(Canvas canvas, double position, String title) {}
+  void drawTitle(Canvas canvas, double position, String title) {
+    TextPainter textPainter = TextPainter(
+      text: TextSpan(text: title, style: _titleTextStyle),
+      textDirection: _textDirection,
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(
+        position -
+            (title.length * _titleTextSize / 2 / 2) -
+            (_sectorStrokeWidth / 2),
+        -20.0,
+      ),
+    );
+  }
 
   void drawSubtitle(Canvas canvas, double position, String subtitle) {
     TextPainter textPainter = TextPainter(

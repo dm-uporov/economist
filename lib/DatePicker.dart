@@ -28,19 +28,6 @@ class _DatePickerState extends State<DatePicker> {
           height: _selectorHeight,
           child: DatePickerLine(
             mainLineHeight: _lineHeight,
-//            onTap: (details) {
-//              setState(() {
-//                final tapPosition = details.globalPosition.dx;
-//                final firstSelectorDelta = tapPosition - _firstSelectorPosition;
-//                final secondSelectorDelta = tapPosition - _secondSelectorPosition;
-//                if (firstSelectorDelta.abs() < secondSelectorDelta.abs()) {
-//                  _firstSelectorPosition = tapPosition - (_selectorWidth / 2);
-//                } else {
-//                  _secondSelectorPosition = tapPosition - (_selectorWidth / 2);
-//                }
-//              });
-//            },
-            onPanUpdate: (details) {},
           ),
         ),
         AnimatedPositioned(
