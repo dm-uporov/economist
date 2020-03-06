@@ -142,6 +142,9 @@ class _SectorsPainter extends CustomPainter {
         _strokePaint = Paint()
           ..color = Colors.white70
           ..strokeWidth = sectorStrokeWidth,
+        _monthsDividerPaint = Paint()
+          ..color = Colors.white70
+          ..strokeWidth = sectorStrokeWidth,
         _titleTextStyle = TextStyle(
           color: Colors.black87,
           fontSize: titleTextSize,
@@ -166,6 +169,7 @@ class _SectorsPainter extends CustomPainter {
   final double _bigSectorsOffset = 5;
 
   final Paint _strokePaint;
+  final Paint _monthsDividerPaint;
   final TextStyle _titleTextStyle;
   final TextStyle _subtitleTextStyle;
   final TextDirection _textDirection = TextDirection.ltr;
@@ -174,7 +178,7 @@ class _SectorsPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final daysScreenCapacity = (size.width / _sectorWidth).ceil();
 
-    final daysOffset = (_offset / _sectorWidth) - (daysScreenCapacity / 2);
+    final daysOffset = (_offset / _sectorWidth) - (daysScreenCapacity - 5);
     final startOffset = _offset % _sectorWidth;
 
     var sectorBorderPosition = -startOffset;
@@ -182,34 +186,42 @@ class _SectorsPainter extends CustomPainter {
     DateTime date = _initDate.add(Duration(days: daysOffset.ceil()));
     while (sectorBorderPosition < size.width) {
       date = date.add(ONE_DAY);
-      double strokeHeight;
       // day is end of month
       if (date.month != date.add(ONE_DAY).month) {
-        strokeHeight = _monthsDividerStrokeHeight;
+        drawStroke(
+          canvas,
+          sectorBorderPosition,
+          _monthsDividerStrokeHeight,
+          paint: _monthsDividerPaint,
+        );
         if (date.day % _bigSectorsOffset == 0) {
           drawSubtitle(canvas, sectorBorderPosition, "${date.day}");
         }
       } else if (date.day % _bigSectorsOffset == 0) {
-        strokeHeight = _bigSectorStrokeHeight;
+        drawStroke(canvas, sectorBorderPosition, _bigSectorStrokeHeight);
         drawSubtitle(canvas, sectorBorderPosition, "${date.day}");
       } else {
-        strokeHeight = _sectorStrokeHeight;
+        drawStroke(canvas, sectorBorderPosition, _sectorStrokeHeight);
       }
 
       if (date.day == MIDDLE_DAY_OF_MONTH) {
-        drawTitle(canvas, sectorBorderPosition, "${DateFormat.MMMM().format(date)}");
+        drawTitle(
+          canvas,
+          sectorBorderPosition,
+          "${DateFormat.MMMM().format(date)}",
+        );
       }
 
-      drawStroke(canvas, sectorBorderPosition, strokeHeight);
       sectorBorderPosition += _sectorWidth;
     }
   }
 
-  void drawStroke(Canvas canvas, double xPosition, double height) {
+  void drawStroke(Canvas canvas, double xPosition, double height,
+      {Paint paint}) {
     canvas.drawLine(
       Offset(xPosition, _mainLineHeight - height),
       Offset(xPosition, _mainLineHeight),
-      _strokePaint,
+      paint == null ? _strokePaint : paint,
     );
   }
 
