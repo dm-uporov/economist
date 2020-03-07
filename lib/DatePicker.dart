@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutterapp2020/DatePickerLine.dart';
+import 'package:intl/intl.dart';
 
 import 'DatePickerSelector.dart';
 
@@ -10,11 +11,10 @@ class DatePicker extends StatefulWidget {
 
 class _DatePickerState extends State<DatePicker> {
   final _lineHeight = 48.0;
-  final _selectorWidth = 30.0;
+  final _selectorWidth = 40.0;
   final _selectorHeight = 96.0;
   final _selectorStrokeWidth = 4.0;
-  final _selectorCircleRadius = 20.0;
-  final _selectorCircleIncreasedRadius = 40.0;
+  final _selectorCircleIncreaseCoefficient = 2.0;
 
   var _firstSelectorPosition = 100.0;
   var _secondSelectorPosition = 260.0;
@@ -71,14 +71,13 @@ class _DatePickerState extends State<DatePicker> {
           ),
         ),
         AnimatedPositioned(
-          duration: Duration(milliseconds: 100),
+          duration: Duration(milliseconds: 50),
           left: _firstSelectorPosition,
           child: DatePickerSelector(
             width: _selectorWidth,
             height: _selectorHeight,
             strokeWidth: _selectorStrokeWidth,
-            circleRadius: _selectorCircleRadius,
-            circleIncreasedRadius: _selectorCircleIncreasedRadius,
+            circleIncreaseCoefficient: _selectorCircleIncreaseCoefficient,
             onPanUpdate: (details) {
               setState(() {
                 _firstSelectorPosition =
@@ -89,21 +88,30 @@ class _DatePickerState extends State<DatePicker> {
           ),
         ),
         AnimatedPositioned(
-          duration: Duration(milliseconds: 100),
+          duration: Duration(milliseconds: 50),
           left: _secondSelectorPosition,
-          child: DatePickerSelector(
-            width: _selectorWidth,
-            height: _selectorHeight,
-            strokeWidth: _selectorStrokeWidth,
-            circleRadius: _selectorCircleRadius,
-            circleIncreasedRadius: _selectorCircleIncreasedRadius,
-            onPanUpdate: (details) {
-              setState(() {
-                _secondSelectorPosition =
-                    details.globalPosition.dx - (_selectorWidth / 2);
-                _updateSecondSelectorPosition(force: true);
-              });
-            },
+          child: Stack(
+            children: <Widget>[
+              DatePickerSelector(
+                width: _selectorWidth,
+                height: _selectorHeight,
+                strokeWidth: _selectorStrokeWidth,
+                circleIncreaseCoefficient: _selectorCircleIncreaseCoefficient,
+                onPanUpdate: (details) {
+                  setState(() {
+                    _secondSelectorPosition =
+                        details.globalPosition.dx - (_selectorWidth / 2);
+                    _updateSecondSelectorPosition(force: true);
+                  });
+                },
+              ),
+              Text(
+                _secondSelectorDate == null
+                    ? "null"
+                    : DateFormat.d().format(_secondSelectorDate),
+                style: TextStyle(fontSize: 20.0, color: Colors.white),
+              ),
+            ],
           ),
         ),
       ],
@@ -136,7 +144,7 @@ class _DatePickerState extends State<DatePicker> {
       (element) => element.date == date,
       orElse: () => null,
     );
-    if (found != null) return found.position;
+    if (found != null) return found.position - _selectorWidth / 2;
 
     if (_datesWithPositions.first.date.isAfter(date)) {
       return 0.0;

@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 
 class DatePickerSelector extends StatefulWidget {
   const DatePickerSelector({
-    width,
-    height,
-    circleRadius = 10.0,
-    circleIncreasedRadius = 20.0,
-    strokeWidth = 6.0,
-    onPanUpdate,
+    double width,
+    double height,
+    double circleIncreaseCoefficient = 2.0,
+    double strokeWidth = 6.0,
+    GestureDragUpdateCallback onPanUpdate,
   })  : _width = width,
         _height = height,
-        _circleRadius = circleRadius,
-        _circleIncreasedRadius = circleIncreasedRadius,
+        _circleRadius = width / 2,
+        _circleIncreasedRadius = width / 2 * circleIncreaseCoefficient,
         _strokeWidth = strokeWidth,
         _onPanUpdate = onPanUpdate;
 
@@ -36,12 +35,12 @@ class DatePickerSelector extends StatefulWidget {
 class _DatePickerSelectorState extends State<DatePickerSelector>
     with SingleTickerProviderStateMixin {
   _DatePickerSelectorState(
-    width,
-    height,
-    circleRadius,
-    circleIncreasedRadius,
-    strokeWidth,
-    onPanUpdate,
+    double width,
+    double height,
+    double circleRadius,
+    double circleIncreasedRadius,
+    double strokeWidth,
+    GestureDragUpdateCallback onPanUpdate,
   )   : _width = width,
         _height = height,
         _circleRadius = circleRadius,

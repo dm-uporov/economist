@@ -2,29 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 class DatePickerLine extends StatefulWidget {
-  const DatePickerLine({mainLineHeight, this.callback})
-      : _mainLineHeight = mainLineHeight;
+  const DatePickerLine({
+    mainLineHeight,
+    DatesPositionsChangedCallback callback,
+  })  : _mainLineHeight = mainLineHeight,
+        _callback = callback;
 
   final double _mainLineHeight;
-  final DatesRedrawnCallback callback;
+  final DatesPositionsChangedCallback _callback;
 
   @override
   _DatePickerLineState createState() =>
-      _DatePickerLineState(_mainLineHeight, callback);
+      _DatePickerLineState(_mainLineHeight, _callback);
 }
 
 class _DatePickerLineState extends State<DatePickerLine>
     with SingleTickerProviderStateMixin {
-  _DatePickerLineState(mainLineHeight, callback)
-      : _mainLineHeight = mainLineHeight,
+  _DatePickerLineState(
+    double mainLineHeight,
+    DatesPositionsChangedCallback callback,
+  )   : _mainLineHeight = mainLineHeight,
         _callback = callback;
 
-  final DatesRedrawnCallback _callback;
+  final DatesPositionsChangedCallback _callback;
   final double _mainLineHeight;
 
-  double _lineOffset = 0.0;
   final double _sectorWidth = 10.0;
   final DateTime _initDate = DateTime.now();
+  double _lineOffset = 0.0;
+  List<DateWithPosition> _dates;
 
   AnimationController _lineStoppingAnimationController;
   Animation _lineStoppingAnimation;
@@ -46,11 +52,10 @@ class _DatePickerLineState extends State<DatePickerLine>
   @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
+    _dates = _computeDates(width, _sectorWidth, _lineOffset);
     return GestureDetector(
         onHorizontalDragUpdate: (details) {
-          setState(() {
-            _lineOffset -= details.delta.dx;
-          });
+          _moveLine(details.delta.dx);
         },
         onHorizontalDragEnd: (details) {
           _lineStoppingAnimationController.removeListener(_moveLineByAnimation);
@@ -75,19 +80,27 @@ class _DatePickerLineState extends State<DatePickerLine>
             ),
             CustomPaint(
               size: Size(width, _mainLineHeight),
-              painter: _computeDatesAndReturnPainter(width),
+              painter: _DatesPainter(
+                dates: _dates,
+                offset: _lineOffset,
+                mainLineHeight: _mainLineHeight,
+              ),
             ),
           ],
         ));
   }
 
-  _DatesPainter _computeDatesAndReturnPainter(double width) {
+  List<DateWithPosition> _computeDates(
+    double width,
+    double sectorWidth,
+    double lineOffset,
+  ) {
     final dates = List<DateWithPosition>();
 
-    final daysScreenCapacity = (width / _sectorWidth).ceil();
+    final daysScreenCapacity = (width / sectorWidth).ceil();
 
-    final daysOffset = (_lineOffset / _sectorWidth) - (daysScreenCapacity - 5);
-    final startOffset = _lineOffset % _sectorWidth;
+    final daysOffset = (lineOffset / sectorWidth) - (daysScreenCapacity - 5);
+    final startOffset = lineOffset % sectorWidth;
 
     var sectorBorderPosition = -startOffset;
 
@@ -95,21 +108,22 @@ class _DatePickerLineState extends State<DatePickerLine>
     while (sectorBorderPosition < width) {
       dates.add(DateWithPosition(date, sectorBorderPosition));
       date = date.add(ONE_DAY);
-      sectorBorderPosition += _sectorWidth;
+      sectorBorderPosition += sectorWidth;
     }
-    _callback.call(dates);
+    return dates;
+  }
 
-    return _DatesPainter(
-      dates: dates,
-      mainLineHeight: _mainLineHeight,
-      offset: _lineOffset,
-    );
+  void _moveLine(double delta) {
+    final dates = _computeDates(360.0, _sectorWidth, _lineOffset);
+    _callback.call(dates);
+    setState(() {
+      _dates = dates;
+      _lineOffset -= delta;
+    });
   }
 
   void _moveLineByAnimation() {
-    setState(() {
-      _lineOffset -= _lineStoppingAnimation.value;
-    });
+    _moveLine(_lineStoppingAnimation.value);
   }
 
   @override
@@ -118,6 +132,8 @@ class _DatePickerLineState extends State<DatePickerLine>
     super.dispose();
   }
 }
+
+typedef DatesPositionsChangedCallback = Function(List<DateWithPosition> dates);
 
 class _LineBackgroundPainter extends CustomPainter {
   _LineBackgroundPainter(double mainLineHeight)
