@@ -102,7 +102,7 @@ class _DatePickerLineState extends State<DatePickerLine>
     final daysOffset = (lineOffset / sectorWidth) - (daysScreenCapacity - 5);
     final startOffset = lineOffset % sectorWidth;
 
-    var sectorBorderPosition = -startOffset;
+    var sectorBorderPosition = sectorWidth - startOffset;
 
     DateTime date = _initDate.add(Duration(days: daysOffset.ceil()));
     while (sectorBorderPosition < width) {

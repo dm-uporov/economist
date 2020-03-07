@@ -5,7 +5,7 @@ class DatePickerSelector extends StatefulWidget {
     double width,
     double height,
     double circleIncreaseCoefficient = 2.0,
-    double strokeWidth = 6.0,
+    double strokeWidth = 4.0,
     GestureDragUpdateCallback onPanUpdate,
   })  : _width = width,
         _height = height,

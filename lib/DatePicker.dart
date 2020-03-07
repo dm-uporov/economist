@@ -13,7 +13,6 @@ class _DatePickerState extends State<DatePicker> {
   final _lineHeight = 48.0;
   final _selectorWidth = 40.0;
   final _selectorHeight = 96.0;
-  final _selectorStrokeWidth = 4.0;
   final _selectorCircleIncreaseCoefficient = 2.0;
 
   var _firstSelectorPosition = 100.0;
@@ -27,33 +26,36 @@ class _DatePickerState extends State<DatePicker> {
   ///
   /// `force` mean ignore current selector date
   ///
-  void _updateFirstSelectorPosition({bool force = false}) {
+  void _updateFirstSelectorPosition(double maxPosition, {bool force = false}) {
     if (_firstSelectorDate == null || force) {
       _firstSelectorDate = _findCloserDateByPosition(_firstSelectorPosition);
     }
     _firstSelectorPosition = _positionByDate(
       _firstSelectorDate,
       _firstSelectorPosition,
+      maxPosition,
     );
   }
 
   ///
   /// `force` mean ignore current selector date
   ///
-  void _updateSecondSelectorPosition({bool force = false}) {
+  void _updateSecondSelectorPosition(double maxPosition, {bool force = false}) {
     if (_secondSelectorDate == null || force) {
       _secondSelectorDate = _findCloserDateByPosition(_secondSelectorPosition);
     }
     _secondSelectorPosition = _positionByDate(
       _secondSelectorDate,
       _secondSelectorPosition,
+      maxPosition,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    _updateFirstSelectorPosition();
-    _updateSecondSelectorPosition();
+    final width = MediaQuery.of(context).size.width;
+    _updateFirstSelectorPosition(width);
+    _updateSecondSelectorPosition(width);
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[
@@ -64,8 +66,8 @@ class _DatePickerState extends State<DatePicker> {
             callback: (datesWithPositions) {
               setState(() {
                 _datesWithPositions = datesWithPositions;
-                _updateFirstSelectorPosition();
-                _updateSecondSelectorPosition();
+                _updateFirstSelectorPosition(width);
+                _updateSecondSelectorPosition(width);
               });
             },
           ),
@@ -76,13 +78,12 @@ class _DatePickerState extends State<DatePicker> {
           child: DatePickerSelector(
             width: _selectorWidth,
             height: _selectorHeight,
-            strokeWidth: _selectorStrokeWidth,
             circleIncreaseCoefficient: _selectorCircleIncreaseCoefficient,
             onPanUpdate: (details) {
               setState(() {
                 _firstSelectorPosition =
                     details.globalPosition.dx - (_selectorWidth / 2);
-                _updateFirstSelectorPosition(force: true);
+                _updateFirstSelectorPosition(width, force: true);
               });
             },
           ),
@@ -95,13 +96,12 @@ class _DatePickerState extends State<DatePicker> {
               DatePickerSelector(
                 width: _selectorWidth,
                 height: _selectorHeight,
-                strokeWidth: _selectorStrokeWidth,
                 circleIncreaseCoefficient: _selectorCircleIncreaseCoefficient,
                 onPanUpdate: (details) {
                   setState(() {
                     _secondSelectorPosition =
                         details.globalPosition.dx - (_selectorWidth / 2);
-                    _updateSecondSelectorPosition(force: true);
+                    _updateSecondSelectorPosition(width, force: true);
                   });
                 },
               ),
@@ -135,7 +135,11 @@ class _DatePickerState extends State<DatePicker> {
     return null;
   }
 
-  double _positionByDate(DateTime date, double fallbackPosition) {
+  double _positionByDate(
+    DateTime date,
+    double fallbackPosition,
+    double maxPosition,
+  ) {
     if (date == null) return fallbackPosition;
     if (_datesWithPositions == null) return fallbackPosition;
     if (_datesWithPositions.isEmpty) return fallbackPosition;
@@ -147,9 +151,9 @@ class _DatePickerState extends State<DatePicker> {
     if (found != null) return found.position - _selectorWidth / 2;
 
     if (_datesWithPositions.first.date.isAfter(date)) {
-      return 0.0;
+      return - _selectorWidth / 2;
     } else {
-      return 360.0;
+      return maxPosition - _selectorWidth / 2;
     }
   }
 }
