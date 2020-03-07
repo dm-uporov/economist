@@ -1,34 +1,85 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
+List<DateWithPosition> computeDates(
+  DateTime currentDate,
+  double width,
+  double sectorWidth,
+  double lineOffset,
+) {
+  final dates = List<DateWithPosition>();
+
+  final daysScreenCapacity = (width / sectorWidth).ceil();
+
+  final daysOffset = (lineOffset / sectorWidth) - (daysScreenCapacity - 5);
+  final startOffset = lineOffset % sectorWidth;
+
+  var sectorBorderPosition = sectorWidth - startOffset;
+
+  DateTime date = currentDate.add(Duration(days: daysOffset.ceil()));
+  while (sectorBorderPosition < width) {
+    dates.add(DateWithPosition(date, sectorBorderPosition));
+    date = date.add(ONE_DAY);
+    sectorBorderPosition += sectorWidth;
+  }
+  return dates;
+}
+
 class DatePickerLine extends StatefulWidget {
-  const DatePickerLine({
-    mainLineHeight,
+  DatePickerLine({
+    double width,
+    double height,
+    double sectorWidth,
+    DateTime currentDate,
+    List<DateWithPosition> initDates,
     DatesPositionsChangedCallback callback,
-  })  : _mainLineHeight = mainLineHeight,
+  })  : _width = width,
+        _height = height,
+        _sectorWidth = sectorWidth,
+        _currentDate = currentDate,
+        _initDates = initDates,
         _callback = callback;
 
-  final double _mainLineHeight;
+  final double _width;
+  final double _height;
+  final double _sectorWidth;
+  final DateTime _currentDate;
+  final List<DateWithPosition> _initDates;
   final DatesPositionsChangedCallback _callback;
 
   @override
-  _DatePickerLineState createState() =>
-      _DatePickerLineState(_mainLineHeight, _callback);
+  _DatePickerLineState createState() => _DatePickerLineState(
+        _width,
+        _height,
+        _sectorWidth,
+        _currentDate,
+        _initDates,
+        _callback,
+      );
 }
 
 class _DatePickerLineState extends State<DatePickerLine>
     with SingleTickerProviderStateMixin {
   _DatePickerLineState(
-    double mainLineHeight,
+    double width,
+    double height,
+    double sectorWidth,
+    DateTime currentDate,
+    List<DateWithPosition> initDates,
     DatesPositionsChangedCallback callback,
-  )   : _mainLineHeight = mainLineHeight,
+  )   : _width = width,
+        _height = height,
+        _sectorWidth = sectorWidth,
+        _currentDate = currentDate,
+        _dates = initDates,
         _callback = callback;
 
+  final double _width;
+  final double _height;
+  final double _sectorWidth;
+  final DateTime _currentDate;
   final DatesPositionsChangedCallback _callback;
-  final double _mainLineHeight;
 
-  final double _sectorWidth = 10.0;
-  final DateTime _initDate = DateTime.now();
   double _lineOffset = 0.0;
   List<DateWithPosition> _dates;
 
@@ -51,8 +102,6 @@ class _DatePickerLineState extends State<DatePickerLine>
 
   @override
   Widget build(BuildContext context) {
-    final double width = MediaQuery.of(context).size.width;
-    _dates = _computeDates(width, _sectorWidth, _lineOffset);
     return GestureDetector(
         onHorizontalDragUpdate: (details) {
           _moveLine(details.delta.dx);
@@ -75,46 +124,23 @@ class _DatePickerLineState extends State<DatePickerLine>
         child: Stack(
           children: <Widget>[
             CustomPaint(
-              size: Size(width, _mainLineHeight),
-              painter: _LineBackgroundPainter(_mainLineHeight),
+              size: Size(_width, _height),
+              painter: _LineBackgroundPainter(_height),
             ),
             CustomPaint(
-              size: Size(width, _mainLineHeight),
+              size: Size(_width, _height),
               painter: _DatesPainter(
                 dates: _dates,
                 offset: _lineOffset,
-                mainLineHeight: _mainLineHeight,
+                mainLineHeight: _height,
               ),
             ),
           ],
         ));
   }
 
-  List<DateWithPosition> _computeDates(
-    double width,
-    double sectorWidth,
-    double lineOffset,
-  ) {
-    final dates = List<DateWithPosition>();
-
-    final daysScreenCapacity = (width / sectorWidth).ceil();
-
-    final daysOffset = (lineOffset / sectorWidth) - (daysScreenCapacity - 5);
-    final startOffset = lineOffset % sectorWidth;
-
-    var sectorBorderPosition = sectorWidth - startOffset;
-
-    DateTime date = _initDate.add(Duration(days: daysOffset.ceil()));
-    while (sectorBorderPosition < width) {
-      dates.add(DateWithPosition(date, sectorBorderPosition));
-      date = date.add(ONE_DAY);
-      sectorBorderPosition += sectorWidth;
-    }
-    return dates;
-  }
-
   void _moveLine(double delta) {
-    final dates = _computeDates(360.0, _sectorWidth, _lineOffset);
+    final dates = computeDates(_currentDate, _width, _sectorWidth, _lineOffset);
     _callback.call(dates);
     setState(() {
       _dates = dates;

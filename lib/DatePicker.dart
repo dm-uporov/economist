@@ -5,69 +5,87 @@ import 'package:intl/intl.dart';
 import 'DatePickerSelector.dart';
 
 class DatePicker extends StatefulWidget {
+  const DatePicker(double width) :_width = width;
+
+  final double _width;
+
   @override
-  _DatePickerState createState() => _DatePickerState();
+  _DatePickerState createState() => _DatePickerState(_width);
 }
 
 class _DatePickerState extends State<DatePicker> {
-  final _lineHeight = 48.0;
-  final _selectorWidth = 40.0;
-  final _selectorHeight = 96.0;
-  final _selectorCircleIncreaseCoefficient = 2.0;
+  final double _width;
+  final double _lineHeight = 48.0;
+  final double _sectorWidth = 10.0;
+  final double _selectorWidth = 40.0;
+  final double _selectorHeight = 96.0;
+  final double _selectorCircleIncreaseCoefficient = 1.8;
 
-  var _firstSelectorPosition = 100.0;
-  var _secondSelectorPosition = 260.0;
+  double _firstSelectorPosition = 100.0;
+  double _secondSelectorPosition = 260.0;
 
+  DateTime _currentDate = DateTime.now();
   DateTime _firstSelectorDate;
   DateTime _secondSelectorDate;
 
+  List<DateWithPosition> _initDates;
   List<DateWithPosition> _datesWithPositions;
+
+  _DatePickerState(double width) : _width = width {
+    _initDates = computeDates(_currentDate, width, _sectorWidth, 0.0);
+    _datesWithPositions = _initDates;
+    _firstSelectorDate = _currentDate.subtract(Duration(days: 30));
+    _secondSelectorDate = _currentDate;
+    _updateFirstSelectorPosition();
+    _updateSecondSelectorPosition();
+  }
 
   ///
   /// `force` mean ignore current selector date
   ///
-  void _updateFirstSelectorPosition(double maxPosition, {bool force = false}) {
+  void _updateFirstSelectorPosition({bool force = false}) {
     if (_firstSelectorDate == null || force) {
       _firstSelectorDate = _findCloserDateByPosition(_firstSelectorPosition);
     }
     _firstSelectorPosition = _positionByDate(
       _firstSelectorDate,
       _firstSelectorPosition,
-      maxPosition,
+      _width,
     );
   }
 
   ///
   /// `force` mean ignore current selector date
   ///
-  void _updateSecondSelectorPosition(double maxPosition, {bool force = false}) {
+  void _updateSecondSelectorPosition({bool force = false}) {
     if (_secondSelectorDate == null || force) {
       _secondSelectorDate = _findCloserDateByPosition(_secondSelectorPosition);
     }
     _secondSelectorPosition = _positionByDate(
       _secondSelectorDate,
       _secondSelectorPosition,
-      maxPosition,
+      _width,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    _updateFirstSelectorPosition(width);
-    _updateSecondSelectorPosition(width);
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[
         Positioned(
           height: _selectorHeight,
           child: DatePickerLine(
-            mainLineHeight: _lineHeight,
+            width: _width,
+            height: _lineHeight,
+            sectorWidth: _sectorWidth,
+            currentDate: _currentDate,
+            initDates: _initDates,
             callback: (datesWithPositions) {
               setState(() {
                 _datesWithPositions = datesWithPositions;
-                _updateFirstSelectorPosition(width);
-                _updateSecondSelectorPosition(width);
+                _updateFirstSelectorPosition();
+                _updateSecondSelectorPosition();
               });
             },
           ),
@@ -83,7 +101,7 @@ class _DatePickerState extends State<DatePicker> {
               setState(() {
                 _firstSelectorPosition =
                     details.globalPosition.dx - (_selectorWidth / 2);
-                _updateFirstSelectorPosition(width, force: true);
+                _updateFirstSelectorPosition(force: true);
               });
             },
           ),
@@ -101,7 +119,7 @@ class _DatePickerState extends State<DatePicker> {
                   setState(() {
                     _secondSelectorPosition =
                         details.globalPosition.dx - (_selectorWidth / 2);
-                    _updateSecondSelectorPosition(width, force: true);
+                    _updateSecondSelectorPosition(force: true);
                   });
                 },
               ),
@@ -135,23 +153,21 @@ class _DatePickerState extends State<DatePicker> {
     return null;
   }
 
-  double _positionByDate(
-    DateTime date,
-    double fallbackPosition,
-    double maxPosition,
-  ) {
+  double _positionByDate(DateTime date,
+      double fallbackPosition,
+      double maxPosition,) {
     if (date == null) return fallbackPosition;
     if (_datesWithPositions == null) return fallbackPosition;
     if (_datesWithPositions.isEmpty) return fallbackPosition;
 
     final found = _datesWithPositions.firstWhere(
-      (element) => element.date == date,
+          (element) => element.date == date,
       orElse: () => null,
     );
     if (found != null) return found.position - _selectorWidth / 2;
 
     if (_datesWithPositions.first.date.isAfter(date)) {
-      return - _selectorWidth / 2;
+      return -_selectorWidth / 2;
     } else {
       return maxPosition - _selectorWidth / 2;
     }
