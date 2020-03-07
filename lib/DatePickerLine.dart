@@ -2,20 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 class DatePickerLine extends StatefulWidget {
-  const DatePickerLine({mainLineHeight}) : _mainLineHeight = mainLineHeight;
+  const DatePickerLine({mainLineHeight, this.callback})
+      : _mainLineHeight = mainLineHeight;
 
   final double _mainLineHeight;
+  final DatesRedrawnCallback callback;
 
   @override
-  _DatePickerLineState createState() => _DatePickerLineState(_mainLineHeight);
+  _DatePickerLineState createState() =>
+      _DatePickerLineState(_mainLineHeight, callback);
 }
 
 class _DatePickerLineState extends State<DatePickerLine>
     with SingleTickerProviderStateMixin {
-  _DatePickerLineState(mainLineHeight) : _mainLineHeight = mainLineHeight;
+  _DatePickerLineState(mainLineHeight, callback)
+      : _mainLineHeight = mainLineHeight,
+        _callback = callback;
 
+  final DatesRedrawnCallback _callback;
   final double _mainLineHeight;
+
   double _lineOffset = 0.0;
+  final double _sectorWidth = 10.0;
+  final DateTime _initDate = DateTime.now();
 
   AnimationController _lineStoppingAnimationController;
   Animation _lineStoppingAnimation;
@@ -36,6 +45,7 @@ class _DatePickerLineState extends State<DatePickerLine>
 
   @override
   Widget build(BuildContext context) {
+    final double width = MediaQuery.of(context).size.width;
     return GestureDetector(
         onHorizontalDragUpdate: (details) {
           setState(() {
@@ -54,25 +64,46 @@ class _DatePickerLineState extends State<DatePickerLine>
           ))
             ..addListener(_moveLineByAnimation);
         },
-        onTapDown: (_) {
+        onHorizontalDragDown: (_) {
           _lineStoppingAnimationController.stop(canceled: false);
         },
         child: Stack(
           children: <Widget>[
             CustomPaint(
-              size: Size(MediaQuery.of(context).size.width, _mainLineHeight),
+              size: Size(width, _mainLineHeight),
               painter: _LineBackgroundPainter(_mainLineHeight),
             ),
             CustomPaint(
-              size: Size(MediaQuery.of(context).size.width, _mainLineHeight),
-              painter: _SectorsPainter(
-                mainLineHeight: _mainLineHeight,
-                offset: _lineOffset,
-                initDate: DateTime.now(),
-              ),
+              size: Size(width, _mainLineHeight),
+              painter: _computeDatesAndReturnPainter(width),
             ),
           ],
         ));
+  }
+
+  _DatesPainter _computeDatesAndReturnPainter(double width) {
+    final dates = List<DateWithPosition>();
+
+    final daysScreenCapacity = (width / _sectorWidth).ceil();
+
+    final daysOffset = (_lineOffset / _sectorWidth) - (daysScreenCapacity - 5);
+    final startOffset = _lineOffset % _sectorWidth;
+
+    var sectorBorderPosition = -startOffset;
+
+    DateTime date = _initDate.add(Duration(days: daysOffset.ceil()));
+    while (sectorBorderPosition < width) {
+      dates.add(DateWithPosition(date, sectorBorderPosition));
+      date = date.add(ONE_DAY);
+      sectorBorderPosition += _sectorWidth;
+    }
+    _callback.call(dates);
+
+    return _DatesPainter(
+      dates: dates,
+      mainLineHeight: _mainLineHeight,
+      offset: _lineOffset,
+    );
   }
 
   void _moveLineByAnimation() {
@@ -117,10 +148,10 @@ class _LineBackgroundPainter extends CustomPainter {
 const ONE_DAY = Duration(days: 1);
 const MIDDLE_DAY_OF_MONTH = 15;
 
-class _SectorsPainter extends CustomPainter {
-  _SectorsPainter({
+class _DatesPainter extends CustomPainter {
+  _DatesPainter({
+    List<DateWithPosition> dates,
     double mainLineHeight,
-    double sectorWidth = 10.0,
     double sectorStrokeWidth = 2.0,
     double sectorStrokeHeight = 12.0,
     double bigSectorStrokeHeight = 24.0,
@@ -128,15 +159,13 @@ class _SectorsPainter extends CustomPainter {
     double titleTextSize = 15.0,
     double subtitleTextSize = 15.0,
     double offset = 0.0,
-    DateTime initDate,
-  })  : _mainLineHeight = mainLineHeight,
-        _sectorWidth = sectorWidth,
+  })  : _dates = dates,
+        _mainLineHeight = mainLineHeight,
         _sectorStrokeWidth = sectorStrokeWidth,
         _sectorStrokeHeight = sectorStrokeHeight,
         _bigSectorStrokeHeight = bigSectorStrokeHeight,
         _monthsDividerStrokeHeight = batchStrokeHeight,
         _offset = offset,
-        _initDate = initDate,
         _subtitleTextSize = subtitleTextSize,
         _titleTextSize = titleTextSize,
         _strokePaint = Paint()
@@ -154,14 +183,13 @@ class _SectorsPainter extends CustomPainter {
           fontSize: subtitleTextSize,
         );
 
+  final List<DateWithPosition> _dates;
   final double _mainLineHeight;
-  final double _sectorWidth;
   final double _sectorStrokeWidth;
   final double _sectorStrokeHeight;
   final double _bigSectorStrokeHeight;
   final double _monthsDividerStrokeHeight;
   final double _offset;
-  final DateTime _initDate;
 
   final double _titleTextSize;
   final double _subtitleTextSize;
@@ -176,43 +204,26 @@ class _SectorsPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final daysScreenCapacity = (size.width / _sectorWidth).ceil();
+    for (DateWithPosition dateWithPosition in _dates) {
+      final date = dateWithPosition.date;
+      final position = dateWithPosition.position;
 
-    final daysOffset = (_offset / _sectorWidth) - (daysScreenCapacity - 5);
-    final startOffset = _offset % _sectorWidth;
-
-    var sectorBorderPosition = -startOffset;
-
-    DateTime date = _initDate.add(Duration(days: daysOffset.ceil()));
-    while (sectorBorderPosition < size.width) {
-      date = date.add(ONE_DAY);
-      // day is end of month
       if (date.month != date.add(ONE_DAY).month) {
-        drawStroke(
-          canvas,
-          sectorBorderPosition,
-          _monthsDividerStrokeHeight,
-          paint: _monthsDividerPaint,
-        );
+        drawStroke(canvas, position, _monthsDividerStrokeHeight,
+            paint: _monthsDividerPaint);
         if (date.day % _bigSectorsOffset == 0) {
-          drawSubtitle(canvas, sectorBorderPosition, "${date.day}");
+          drawSubtitle(canvas, position, "${date.day}");
         }
       } else if (date.day % _bigSectorsOffset == 0) {
-        drawStroke(canvas, sectorBorderPosition, _bigSectorStrokeHeight);
-        drawSubtitle(canvas, sectorBorderPosition, "${date.day}");
+        drawStroke(canvas, position, _bigSectorStrokeHeight);
+        drawSubtitle(canvas, position, "${date.day}");
       } else {
-        drawStroke(canvas, sectorBorderPosition, _sectorStrokeHeight);
+        drawStroke(canvas, position, _sectorStrokeHeight);
       }
 
       if (date.day == MIDDLE_DAY_OF_MONTH) {
-        drawTitle(
-          canvas,
-          sectorBorderPosition,
-          "${DateFormat.MMMM().format(date)}",
-        );
+        drawTitle(canvas, position, "${DateFormat.MMMM().format(date)}");
       }
-
-      sectorBorderPosition += _sectorWidth;
     }
   }
 
@@ -261,6 +272,15 @@ class _SectorsPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
-    return oldDelegate is _SectorsPainter && _offset != oldDelegate._offset;
+    return oldDelegate is _DatesPainter && _offset != oldDelegate._offset;
   }
 }
+
+class DateWithPosition {
+  final DateTime date;
+  final double position;
+
+  DateWithPosition(this.date, this.position);
+}
+
+typedef DatesRedrawnCallback = void Function(List<DateWithPosition> dates);

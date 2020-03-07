@@ -19,6 +19,8 @@ class _DatePickerState extends State<DatePicker> {
   var _firstSelectorPosition = 100.0;
   var _secondSelectorPosition = 200.0;
 
+  List<DateWithPosition> _datesWithPositions;
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -28,6 +30,11 @@ class _DatePickerState extends State<DatePicker> {
           height: _selectorHeight,
           child: DatePickerLine(
             mainLineHeight: _lineHeight,
+            callback: (datesWithPositions) {
+//              setState(() {
+//                _datesWithPositions = datesWithPositions;
+//              });
+            },
           ),
         ),
         AnimatedPositioned(
