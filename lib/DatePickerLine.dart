@@ -141,11 +141,9 @@ class _DatePickerLineState extends State<DatePickerLine>
 
   void _moveLine(double delta) {
     final dates = computeDates(_currentDate, _width, _sectorWidth, _lineOffset);
+    _dates = dates;
+    _lineOffset -= delta;
     _callback.call(dates);
-    setState(() {
-      _dates = dates;
-      _lineOffset -= delta;
-    });
   }
 
   void _moveLineByAnimation() {

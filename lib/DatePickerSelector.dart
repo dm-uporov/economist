@@ -228,7 +228,6 @@ class _DatePickerSelectorPainter extends CustomPainter {
 
   final Paint _paint;
 
-  // from 0.0 to 1.0
   final double circleIncreaseCoefficient;
 
   @override
@@ -252,11 +251,10 @@ class _DatePickerSelectorPainter extends CustomPainter {
       _paint,
     );
 
-    _drawDate(canvas, centerX, circleCenterY);
+    _drawDate(canvas, centerX, circleCenterY, circleCurrentRadius);
   }
 
-  void _drawDate(Canvas canvas, double x, double y) {
-    final fontSize = 20.0;
+  void _drawDate(Canvas canvas, double x, double y, double fontSize) {
     final dateString = "${DateFormat.d().format(date)}";
     TextPainter textPainter = TextPainter(
       text: TextSpan(

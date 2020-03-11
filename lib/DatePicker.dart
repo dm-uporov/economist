@@ -6,6 +6,7 @@ import 'DatePickerSelector.dart';
 class DatePicker extends StatefulWidget {
   const DatePicker(double width) : _width = width;
 
+  /// full width of date picker line
   final double _width;
 
   @override
@@ -13,23 +14,40 @@ class DatePicker extends StatefulWidget {
 }
 
 class _DatePickerState extends State<DatePicker> {
+  /// full width of date picker line
   final double _width;
+
+  /// height of solid line background
   final double _lineHeight = 48.0;
+
+  /// gap between sectors (days by default)
   final double _sectorWidth = 10.0;
+
+  /// diameter of selector circle
   final double _selectorWidth = 40.0;
+
+  /// height of selector (from top of line to bottom of circle)
   final double _selectorHeight = 96.0;
+
+  /// max coefficient to selector increase animation
   final double _selectorCircleIncreaseCoefficient = 1.8;
 
+  /// because of main use case the date picker (economist)
+  /// the current date will appear closer to the end of line
+  /// TODO add ability to change this behavior
   final DateTime _currentDate = DateTime.now();
+
+  /// by default left selector selected date
+  /// user can change position manually, so it is `first` selector instead of `left`
   DateTime _firstSelectorDate;
+  /// right selector selected date
   DateTime _secondSelectorDate;
 
-  List<DateWithPosition> _initDates;
+  /// visible dates and theirs positions by the x axis
   List<DateWithPosition> _datesWithPositions;
 
   _DatePickerState(double width) : _width = width {
-    _initDates = computeDates(_currentDate, width, _sectorWidth, 0.0);
-    _datesWithPositions = _initDates;
+    _datesWithPositions = computeDates(_currentDate, width, _sectorWidth, 0.0);
     _firstSelectorDate = _currentDate.subtract(Duration(days: 30));
     _secondSelectorDate = _currentDate;
   }
@@ -46,7 +64,7 @@ class _DatePickerState extends State<DatePicker> {
             height: _lineHeight,
             sectorWidth: _sectorWidth,
             currentDate: _currentDate,
-            initDates: _initDates,
+            initDates: _datesWithPositions,
             callback: (datesWithPositions) {
               setState(() {
                 _datesWithPositions = datesWithPositions;
