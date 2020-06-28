@@ -69,19 +69,22 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
   )   : _width = width,
         _height = height,
         _sectorWidth = sectorWidth,
+        _lineWidth = lineWidth,
         _circleRadius = circleRadius,
         _circleIncreasedRadius = circleIncreasedRadius,
         _strokeWidth = strokeWidth,
         _date = initDate,
         _datesWithPositions = datesWithPositions,
-        _maxPosition = lineWidth - width,
+        _maxPosition = lineWidth - (width / 2),
+        _minPosition = width / 2,
         _callback = callback {
-    _selectorPosition = _positionByDate(initDate);
+    _updatePositionByDate(initDate);
   }
 
   final double _width;
   final double _height;
   final double _sectorWidth;
+  final double _lineWidth;
   final double _circleRadius;
   final double _circleIncreasedRadius;
   final double _strokeWidth;
@@ -89,7 +92,7 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
   final OnDateSelectedCallback _callback;
 
   final double _maxPosition;
-  final double _minPosition = 0;
+  final double _minPosition;
 
   DateTime _date;
 
@@ -115,7 +118,7 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
     if (datesDidChanged(oldWidget)) {
       setState(() {
         _datesWithPositions = oldWidget._datesWithPositions;
-        _selectorPosition = _positionByDate(_date);
+        _updatePositionByDate(_date);
       });
     }
   }
@@ -132,7 +135,12 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
 
     final first = _datesWithPositions.first;
     final oldFirst = oldWidget._datesWithPositions.first;
-    return first.date != oldFirst.date || first.position != oldFirst.position;
+    final last = _datesWithPositions.last;
+    final oldLast = oldWidget._datesWithPositions.last;
+    return first.date != oldFirst.date ||
+        first.position != oldFirst.position ||
+        last.date != oldLast.date ||
+        last.position != oldLast.position;
   }
 
   @override
@@ -140,7 +148,7 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
     return AnimatedPositioned(
       height: _height,
       duration: Duration(milliseconds: 30),
-      left: _selectorPosition,
+      left: _selectorPosition - (_width / 2),
       child: GestureDetector(
         onPanStart: (details) {
           _increaseAnimationController.forward();
@@ -164,10 +172,10 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
         },
         onPanUpdate: (details) {
           setState(() {
-            final pointer = details.globalPosition.dx - (_width / 2);
+            final pointer = details.globalPosition.dx + (_width / 2);
             _date = _findCloserDateByPosition(pointer);
             _callback.call(_date);
-            _selectorPosition = _positionByDate(_date);
+            _updatePositionByDate(_date);
           });
         },
         child: CustomPaint(
@@ -192,10 +200,10 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
 
   DateTime _findCloserDateByPosition(double position) {
     if (_datesWithPositions != null) {
-      if (position < _minPosition + (_width / 2)) {
-        position = _minPosition + (_width / 2);
-      } else if (position > _maxPosition + (_width / 2)) {
-        position = _maxPosition + (_width / 2);
+      if (position < 0) {
+        return _datesWithPositions.first.date;
+      } else if (position > _lineWidth) {
+        return _datesWithPositions.last.date;
       }
 
       for (DateWithPosition date in _datesWithPositions) {
@@ -208,26 +216,27 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
     return null;
   }
 
-  double _positionByDate(DateTime date) {
+  void _updatePositionByDate(DateTime date) {
     final found = _datesWithPositions.firstWhere(
       (element) => element.date == date,
       orElse: () => null,
     );
     if (found != null) {
-      double position = found.position - _width / 2;
+      double position = found.position;
       if (position < _minPosition) {
-        return _minPosition;
+        _selectorPosition = _minPosition;
       } else if (position > _maxPosition) {
-        return _maxPosition;
+        _selectorPosition = _maxPosition;
       } else {
-        return position;
+        _selectorPosition = position;
       }
+      return;
     }
 
     if (_datesWithPositions.first.date.isAfter(date)) {
-      return _minPosition;
+      _selectorPosition = _minPosition;
     } else {
-      return _maxPosition;
+      _selectorPosition = _maxPosition;
     }
   }
 }
