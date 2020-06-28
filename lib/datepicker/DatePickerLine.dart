@@ -215,7 +215,7 @@ class _DatesPainter extends CustomPainter {
           ..color = Colors.white70
           ..strokeWidth = sectorStrokeWidth,
         _titleTextStyle = TextStyle(
-          color: Colors.black87,
+          color: Colors.white70,
           fontSize: titleTextSize,
         ),
         _subtitleTextStyle = TextStyle(
@@ -249,19 +249,23 @@ class _DatesPainter extends CustomPainter {
       final position = dateWithPosition.position;
 
       if (date.month != date.add(ONE_DAY).month) {
+        // draw big stroke
         drawStroke(canvas, position, _monthsDividerStrokeHeight,
             paint: _monthsDividerPaint);
         if (date.day % _bigSectorsOffset == 0) {
           drawSubtitle(canvas, position, "${date.day}");
         }
       } else if (date.day % _bigSectorsOffset == 0) {
+        // draw small stroke with subtitle
         drawStroke(canvas, position, _bigSectorStrokeHeight);
         drawSubtitle(canvas, position, "${date.day}");
       } else {
+        // draw just small stroke
         drawStroke(canvas, position, _sectorStrokeHeight);
       }
 
       if (date.day == MIDDLE_DAY_OF_MONTH) {
+        // draw title of big sector
         drawTitle(canvas, position, "${DateFormat.MMMM().format(date)}");
       }
     }
@@ -288,7 +292,7 @@ class _DatesPainter extends CustomPainter {
         position -
             (title.length * _titleTextSize / 2 / 2) -
             (_sectorStrokeWidth / 2),
-        -20.0,
+        0.0,
       ),
     );
   }

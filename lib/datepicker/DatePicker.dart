@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutterapp2020/DatePickerLine.dart';
+import 'package:flutterapp2020/datepicker/DatePickerLine.dart';
 
 import 'DatePickerSelector.dart';
 
@@ -20,7 +20,7 @@ class _DatePickerState extends State<DatePicker> {
   /// height of solid line background
   final double _lineHeight = 48.0;
 
-  /// gap between sectors (days by default)
+  /// init gap between sectors (days by default)
   final double _sectorWidth = 10.0;
 
   /// diameter of selector circle
@@ -55,7 +55,7 @@ class _DatePickerState extends State<DatePicker> {
   @override
   Widget build(BuildContext context) {
     return Stack(
-      alignment: Alignment.center,
+      alignment: Alignment.topCenter,
       children: <Widget>[
         Positioned(
           height: _selectorHeight,
@@ -76,6 +76,7 @@ class _DatePickerState extends State<DatePicker> {
           _datesWithPositions,
           width: _selectorWidth,
           height: _selectorHeight,
+          sectorWidth: _sectorWidth,
           lineWidth: _width,
           circleIncreaseCoefficient: _selectorCircleIncreaseCoefficient,
           initDate: _firstSelectorDate,
@@ -85,6 +86,7 @@ class _DatePickerState extends State<DatePicker> {
           _datesWithPositions,
           width: _selectorWidth,
           height: _selectorHeight,
+          sectorWidth: _sectorWidth,
           lineWidth: _width,
           circleIncreaseCoefficient: _selectorCircleIncreaseCoefficient,
           initDate: _secondSelectorDate,

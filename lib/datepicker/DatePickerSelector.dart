@@ -5,9 +5,10 @@ import 'DatePickerLine.dart';
 
 class DatePickerSelector extends StatefulWidget {
   DatePickerSelector(
-      List<DateWithPosition> datesWithPositions,{
+    List<DateWithPosition> datesWithPositions, {
     double width,
     double height,
+    double sectorWidth,
     double lineWidth,
     double circleIncreaseCoefficient = 2.0,
     double strokeWidth = 4.0,
@@ -15,6 +16,7 @@ class DatePickerSelector extends StatefulWidget {
     OnDateSelectedCallback callback,
   })  : _width = width,
         _height = height,
+        _sectorWidth = sectorWidth,
         _lineWidth = lineWidth,
         _circleRadius = width / 2,
         _circleIncreasedRadius = width / 2 * circleIncreaseCoefficient,
@@ -25,6 +27,7 @@ class DatePickerSelector extends StatefulWidget {
 
   final double _width;
   final double _height;
+  final double _sectorWidth;
   final double _lineWidth;
   final double _circleRadius;
   final double _circleIncreasedRadius;
@@ -38,6 +41,7 @@ class DatePickerSelector extends StatefulWidget {
     return _DatePickerSelectorState(
       _width,
       _height,
+      _sectorWidth,
       _lineWidth,
       _circleRadius,
       _circleIncreasedRadius,
@@ -54,6 +58,7 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
   _DatePickerSelectorState(
     double width,
     double height,
+    double sectorWidth,
     double lineWidth,
     double circleRadius,
     double circleIncreasedRadius,
@@ -63,24 +68,28 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
     OnDateSelectedCallback callback,
   )   : _width = width,
         _height = height,
-        _lineWidth = lineWidth,
+        _sectorWidth = sectorWidth,
         _circleRadius = circleRadius,
         _circleIncreasedRadius = circleIncreasedRadius,
         _strokeWidth = strokeWidth,
         _date = initDate,
         _datesWithPositions = datesWithPositions,
+        _maxPosition = lineWidth - width,
         _callback = callback {
     _selectorPosition = _positionByDate(initDate);
   }
 
   final double _width;
   final double _height;
-  final double _lineWidth;
+  final double _sectorWidth;
   final double _circleRadius;
   final double _circleIncreasedRadius;
   final double _strokeWidth;
   List<DateWithPosition> _datesWithPositions;
   final OnDateSelectedCallback _callback;
+
+  final double _maxPosition;
+  final double _minPosition = 0;
 
   DateTime _date;
 
@@ -183,9 +192,15 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
 
   DateTime _findCloserDateByPosition(double position) {
     if (_datesWithPositions != null) {
+      if (position < _minPosition + (_width / 2)) {
+        position = _minPosition + (_width / 2);
+      } else if (position > _maxPosition + (_width / 2)) {
+        position = _maxPosition + (_width / 2);
+      }
+
       for (DateWithPosition date in _datesWithPositions) {
         final delta = (date.position - position).abs();
-        if (delta <= 5.0) {
+        if (delta <= _sectorWidth / 2) {
           return date.date;
         }
       }
@@ -198,12 +213,21 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
       (element) => element.date == date,
       orElse: () => null,
     );
-    if (found != null) return found.position - _width / 2;
+    if (found != null) {
+      double position = found.position - _width / 2;
+      if (position < _minPosition) {
+        return _minPosition;
+      } else if (position > _maxPosition) {
+        return _maxPosition;
+      } else {
+        return position;
+      }
+    }
 
     if (_datesWithPositions.first.date.isAfter(date)) {
-      return -(_width / 2);
+      return _minPosition;
     } else {
-      return _lineWidth - _width / 2;
+      return _maxPosition;
     }
   }
 }
@@ -254,8 +278,11 @@ class _DatePickerSelectorPainter extends CustomPainter {
     _drawDate(canvas, centerX, circleCenterY, circleCurrentRadius);
   }
 
-  void _drawDate(Canvas canvas, double x, double y, double fontSize) {
-    final dateString = "${DateFormat.d().format(date)}";
+  void _drawDate(Canvas canvas, double x, double y, double radius) {
+    final dateString = "${DateFormat.Md().format(date)}";
+
+    double fontSize = radius * 2.5 / dateString.length;
+
     TextPainter textPainter = TextPainter(
       text: TextSpan(
         text: dateString,
