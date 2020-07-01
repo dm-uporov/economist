@@ -21,13 +21,13 @@ class _CategoriesChartWidgetState extends State<CategoriesChartWidget> {
   static const holeRadiusPercents = 70.0;
 
   final double chartHeight;
-  final double tileDefaultRadius;
+  final double tileRadius;
   double holeRadius;
   List<Category> categories;
 
   _CategoriesChartWidgetState(this.chartHeight, this.categories)
-      : tileDefaultRadius = chartHeight / 2 {
-    holeRadius = tileDefaultRadius / 100 * holeRadiusPercents;
+      : tileRadius = chartHeight / 2 {
+    holeRadius = tileRadius / 100 * holeRadiusPercents;
   }
 
   @override
@@ -48,7 +48,7 @@ class _CategoriesChartWidgetState extends State<CategoriesChartWidget> {
     final categoriesTiles = categories.map((item) {
       final tileDegrees = item.sum / sum * degreesSum;
       final tile = ChartTile(
-          item.color, nextTileStartAngle, tileDegrees, tileDefaultRadius);
+          item.color, nextTileStartAngle, tileDegrees, tileRadius);
       nextTileStartAngle += tileDegrees;
       return tile;
     });

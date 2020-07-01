@@ -30,7 +30,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  static const double datePickerHeight = 100;
+  static const double datePickerHeight = 200;
   static const double categoriesChartHeight = 250;
 
   final List<Category> categories = [
@@ -51,33 +51,16 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Column(
-        verticalDirection: VerticalDirection.down,
+      body: Stack(
         children: <Widget>[
           Container(
-            height: datePickerHeight,
-            child: DatePicker(width, datePickerLineHeight),
-          ),
-          Container(
+            padding: EdgeInsets.only(top: datePickerHeight),
             height: categoriesChartHeight,
             child: CategoriesChartWidget(categoriesChartHeight, categories),
           ),
+          DatePicker(width, datePickerLineHeight),
         ],
       ),
-//      body: Stack(
-//        children: <Widget>[
-//          Padding(
-//            padding: EdgeInsets.only(
-//              top: datePickerLineHeight + _contentMargin,
-//              left: _contentMargin,
-//              right: _contentMargin,
-//              bottom: _contentMargin,
-//            ),
-//            child: CategoriesWidget(datePickerLineHeight),
-//          ),
-//          DatePicker(width, datePickerLineHeight),
-//        ],
-//      ),
     );
   }
 }
