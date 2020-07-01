@@ -58,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
             height: categoriesChartHeight,
             child: CategoriesChartWidget(categoriesChartHeight, categories),
           ),
-          DatePicker(width, datePickerLineHeight),
+          DatePicker(width, datePickerLineHeight, 40),
         ],
       ),
     );

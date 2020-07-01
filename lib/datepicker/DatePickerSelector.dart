@@ -6,29 +6,25 @@ import 'DatePickerLine.dart';
 class DatePickerSelector extends StatefulWidget {
   DatePickerSelector(
     List<DateWithPosition> datesWithPositions, {
-    double width,
-    double height,
-    double sectorWidth,
-    double lineWidth,
+    this.width,
+    this.height,
+    this.sectorWidth,
+    this.lineWidth,
     double circleIncreaseCoefficient = 2.0,
     double strokeWidth = 4.0,
     DateTime initDate,
     OnDateSelectedCallback callback,
-  })  : _width = width,
-        _height = height,
-        _sectorWidth = sectorWidth,
-        _lineWidth = lineWidth,
-        _circleRadius = width / 2,
+  })  : _circleRadius = width / 2,
         _circleIncreasedRadius = width / 2 * circleIncreaseCoefficient,
         _strokeWidth = strokeWidth,
         _initDate = initDate,
         _datesWithPositions = datesWithPositions,
         _callback = callback;
 
-  final double _width;
-  final double _height;
-  final double _sectorWidth;
-  final double _lineWidth;
+  final double width;
+  final double height;
+  final double sectorWidth;
+  final double lineWidth;
   final double _circleRadius;
   final double _circleIncreasedRadius;
   final double _strokeWidth;
@@ -39,10 +35,10 @@ class DatePickerSelector extends StatefulWidget {
   @override
   _DatePickerSelectorState createState() {
     return _DatePickerSelectorState(
-      _width,
-      _height,
-      _sectorWidth,
-      _lineWidth,
+      width,
+      height,
+      sectorWidth,
+      lineWidth,
       _circleRadius,
       _circleIncreasedRadius,
       _strokeWidth,
@@ -56,24 +52,17 @@ class DatePickerSelector extends StatefulWidget {
 class _DatePickerSelectorState extends State<DatePickerSelector>
     with SingleTickerProviderStateMixin {
   _DatePickerSelectorState(
-    double width,
-    double height,
-    double sectorWidth,
-    double lineWidth,
-    double circleRadius,
-    double circleIncreasedRadius,
-    double strokeWidth,
+    this.width,
+    this.height,
+    this.sectorWidth,
+    this.lineWidth,
+    this.circleRadius,
+    this.circleIncreasedRadius,
+    this.strokeWidth,
     DateTime initDate,
     List<DateWithPosition> datesWithPositions,
     OnDateSelectedCallback callback,
-  )   : _width = width,
-        _height = height,
-        _sectorWidth = sectorWidth,
-        _lineWidth = lineWidth,
-        _circleRadius = circleRadius,
-        _circleIncreasedRadius = circleIncreasedRadius,
-        _strokeWidth = strokeWidth,
-        _date = initDate,
+  )   : _date = initDate,
         _datesWithPositions = datesWithPositions,
         _maxPosition = lineWidth - (width / 2),
         _minPosition = width / 2,
@@ -81,13 +70,13 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
     _updatePositionByDate(initDate);
   }
 
-  final double _width;
-  final double _height;
-  final double _sectorWidth;
-  final double _lineWidth;
-  final double _circleRadius;
-  final double _circleIncreasedRadius;
-  final double _strokeWidth;
+  final double width;
+  final double height;
+  final double sectorWidth;
+  final double lineWidth;
+  final double circleRadius;
+  final double circleIncreasedRadius;
+  final double strokeWidth;
   List<DateWithPosition> _datesWithPositions;
   final OnDateSelectedCallback _callback;
 
@@ -146,9 +135,9 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
   @override
   Widget build(BuildContext context) {
     return AnimatedPositioned(
-      height: _height,
+      height: height,
       duration: Duration(milliseconds: 30),
-      left: _selectorPosition - (_width / 2),
+      left: _selectorPosition - (width / 2),
       child: GestureDetector(
         onPanStart: (details) {
           _increaseAnimationController.forward();
@@ -172,18 +161,18 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
         },
         onPanUpdate: (details) {
           setState(() {
-            final pointer = details.globalPosition.dx + (_width / 2);
+            final pointer = details.globalPosition.dx + (width / 2);
             _date = _findCloserDateByPosition(pointer);
             _callback.call(_date);
             _updatePositionByDate(_date);
           });
         },
         child: CustomPaint(
-          size: Size(_width, _height),
+          size: Size(width, height),
           painter: _DatePickerSelectorPainter(
-            _circleRadius,
-            _circleIncreasedRadius,
-            _strokeWidth,
+            circleRadius,
+            circleIncreasedRadius,
+            strokeWidth,
             _circleIncreaseCoefficient,
             _date,
           ),
@@ -202,13 +191,13 @@ class _DatePickerSelectorState extends State<DatePickerSelector>
     if (_datesWithPositions != null) {
       if (position < 0) {
         return _datesWithPositions.first.date;
-      } else if (position > _lineWidth) {
+      } else if (position > lineWidth) {
         return _datesWithPositions.last.date;
       }
 
       for (DateWithPosition date in _datesWithPositions) {
         final delta = (date.position - position).abs();
-        if (delta <= _sectorWidth / 2) {
+        if (delta <= sectorWidth / 2) {
           return date.date;
         }
       }

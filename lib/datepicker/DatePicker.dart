@@ -4,61 +4,65 @@ import 'package:flutterapp2020/datepicker/DatePickerLine.dart';
 import 'DatePickerSelector.dart';
 
 class DatePicker extends StatefulWidget {
-  const DatePicker(double width, lineHeight)
-      : _width = width,
-        _lineHeight = lineHeight;
+  const DatePicker(this.width, this.lineHeight, this.selectorSize);
 
-  /// full width of date picker line
-  final double _width;
+  /// The full width of date picker line
+  final double width;
 
-  /// height of solid line background
-  final double _lineHeight;
+  /// The height of solid line background
+  final double lineHeight;
+
+  /// The diameter of selector bubble, as well as height of picker under the main line
+  final double selectorSize;
 
   @override
-  _DatePickerState createState() => _DatePickerState(_width, _lineHeight);
+  _DatePickerState createState() => _DatePickerState(width, lineHeight, selectorSize);
 }
 
 class _DatePickerState extends State<DatePicker> {
-  _DatePickerState(double width, double lineHeight)
-      : _width = width,
-        _lineHeight = lineHeight {
-    _datesWithPositions = computeDates(_currentDate, width, _sectorWidth, 0.0);
-    _firstSelectorDate = _currentDate.subtract(Duration(days: 30));
-    _secondSelectorDate = _currentDate;
+  _DatePickerState(this.width, this.lineHeight, this.selectorSize) {
+    datesWithPositions = computeDates(currentDate, width, sectorWidth, 0.0);
+    firstSelectorDate = currentDate.subtract(Duration(days: 30));
+    secondSelectorDate = currentDate;
+    selectorWidth = selectorSize;
+    selectorHeight = lineHeight + selectorSize;
   }
 
-  /// full width of date picker line
-  final double _width;
+  /// The full width of date picker line
+  final double width;
 
-  /// height of solid line background
-  final double _lineHeight;
+  /// Height of solid line background
+  final double lineHeight;
 
-  /// init gap between sectors (days by default)
-  final double _sectorWidth = 10.0;
+  /// Diameter of selector bubble, as well as height of picker under the main line
+  final double selectorSize;
 
-  /// diameter of selector circle
-  final double _selectorWidth = 40.0;
+  /// The init gap between sectors (days by default)
+  final double sectorWidth = 10.0;
 
-  /// height of selector (from top of line to bottom of circle)
-  final double _selectorHeight = 96.0;
+  /// Diameter of selector circle
+  double selectorWidth;
+
+  /// Height of selector (from top of line to bottom of circle)
+  double selectorHeight;
 
   /// max coefficient to selector increase animation
-  final double _selectorCircleIncreaseCoefficient = 1.8;
+  final double selectorCircleIncreaseCoefficient = 1.8;
 
   /// because of main use case the date picker (economist)
   /// the current date will appear closer to the end of line
   /// TODO add ability to change this behavior
-  final DateTime _currentDate = DateTime.now();
+  final DateTime currentDate = DateTime.now();
 
   /// by default left selector selected date
   /// user can change position manually, so it is `first` selector instead of `left`
-  DateTime _firstSelectorDate;
+  DateTime firstSelectorDate;
 
   /// right selector selected date
-  DateTime _secondSelectorDate;
+  DateTime secondSelectorDate;
 
   /// visible dates and theirs positions by the x axis
-  List<DateWithPosition> _datesWithPositions;
+  List<DateWithPosition> datesWithPositions;
 
   @override
   Widget build(BuildContext context) {
@@ -66,39 +70,39 @@ class _DatePickerState extends State<DatePicker> {
       alignment: Alignment.topCenter,
       children: <Widget>[
         Positioned(
-          height: _selectorHeight,
+          height: selectorHeight,
           child: DatePickerLine(
-            width: _width,
-            height: _lineHeight,
-            sectorWidth: _sectorWidth,
-            currentDate: _currentDate,
-            initDates: _datesWithPositions,
-            callback: (datesWithPositions) {
+            width: width,
+            height: lineHeight,
+            sectorWidth: sectorWidth,
+            currentDate: currentDate,
+            initDates: datesWithPositions,
+            callback: (newDatesWithPositions) {
               setState(() {
-                _datesWithPositions = datesWithPositions;
+                datesWithPositions = newDatesWithPositions;
               });
             },
           ),
         ),
         DatePickerSelector(
-          _datesWithPositions,
-          width: _selectorWidth,
-          height: _selectorHeight,
-          sectorWidth: _sectorWidth,
-          lineWidth: _width,
-          circleIncreaseCoefficient: _selectorCircleIncreaseCoefficient,
-          initDate: _firstSelectorDate,
-          callback: (date) => _firstSelectorDate = date,
+          datesWithPositions,
+          width: selectorWidth,
+          height: selectorHeight,
+          sectorWidth: sectorWidth,
+          lineWidth: width,
+          circleIncreaseCoefficient: selectorCircleIncreaseCoefficient,
+          initDate: firstSelectorDate,
+          callback: (date) => firstSelectorDate = date,
         ),
         DatePickerSelector(
-          _datesWithPositions,
-          width: _selectorWidth,
-          height: _selectorHeight,
-          sectorWidth: _sectorWidth,
-          lineWidth: _width,
-          circleIncreaseCoefficient: _selectorCircleIncreaseCoefficient,
-          initDate: _secondSelectorDate,
-          callback: (date) => _secondSelectorDate = date,
+          datesWithPositions,
+          width: selectorWidth,
+          height: selectorHeight,
+          sectorWidth: sectorWidth,
+          lineWidth: width,
+          circleIncreaseCoefficient: selectorCircleIncreaseCoefficient,
+          initDate: secondSelectorDate,
+          callback: (date) => secondSelectorDate = date,
         ),
       ],
     );
