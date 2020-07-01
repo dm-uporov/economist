@@ -35,7 +35,6 @@ class _ChartTilePainter extends CustomPainter {
 
     final fromRadians = radians(fromDegree);
     final sizeRadians = radians(sizeDegrees);
-
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       fromRadians,

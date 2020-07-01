@@ -47,11 +47,11 @@ class _CategoriesChartWidgetState extends State<CategoriesChartWidget> {
 
     final categoriesTiles = categories.map((item) {
       final tileDegrees = item.sum / sum * degreesSum;
-      final tile = ChartTile(
-          item.color, nextTileStartAngle, tileDegrees, tileRadius);
+      final tile =
+          ChartTile(item.color, nextTileStartAngle, tileDegrees, tileRadius);
       nextTileStartAngle += tileDegrees;
       return tile;
-    });
+    }).toList();
 
     List<ChartTileDivider> dividers = [];
     if (categoriesTiles.length > 1) {
@@ -59,6 +59,11 @@ class _CategoriesChartWidgetState extends State<CategoriesChartWidget> {
         dividers.add(ChartTileDivider(
           Colors.white,
           tile.fromDegree,
+          tile.radius,
+        ));
+        dividers.add(ChartTileDivider(
+          Colors.white,
+          tile.fromDegree + tile.sizeDegrees,
           tile.radius,
         ));
       });
