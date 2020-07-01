@@ -4,21 +4,34 @@ import 'package:flutterapp2020/datepicker/DatePickerLine.dart';
 import 'DatePickerSelector.dart';
 
 class DatePicker extends StatefulWidget {
-  const DatePicker(double width) : _width = width;
+  const DatePicker(double width, lineHeight)
+      : _width = width,
+        _lineHeight = lineHeight;
 
-  /// full width of date picker line
-  final double _width;
-
-  @override
-  _DatePickerState createState() => _DatePickerState(_width);
-}
-
-class _DatePickerState extends State<DatePicker> {
   /// full width of date picker line
   final double _width;
 
   /// height of solid line background
-  final double _lineHeight = 48.0;
+  final double _lineHeight;
+
+  @override
+  _DatePickerState createState() => _DatePickerState(_width, _lineHeight);
+}
+
+class _DatePickerState extends State<DatePicker> {
+  _DatePickerState(double width, double lineHeight)
+      : _width = width,
+        _lineHeight = lineHeight {
+    _datesWithPositions = computeDates(_currentDate, width, _sectorWidth, 0.0);
+    _firstSelectorDate = _currentDate.subtract(Duration(days: 30));
+    _secondSelectorDate = _currentDate;
+  }
+
+  /// full width of date picker line
+  final double _width;
+
+  /// height of solid line background
+  final double _lineHeight;
 
   /// init gap between sectors (days by default)
   final double _sectorWidth = 10.0;
@@ -40,17 +53,12 @@ class _DatePickerState extends State<DatePicker> {
   /// by default left selector selected date
   /// user can change position manually, so it is `first` selector instead of `left`
   DateTime _firstSelectorDate;
+
   /// right selector selected date
   DateTime _secondSelectorDate;
 
   /// visible dates and theirs positions by the x axis
   List<DateWithPosition> _datesWithPositions;
-
-  _DatePickerState(double width) : _width = width {
-    _datesWithPositions = computeDates(_currentDate, width, _sectorWidth, 0.0);
-    _firstSelectorDate = _currentDate.subtract(Duration(days: 30));
-    _secondSelectorDate = _currentDate;
-  }
 
   @override
   Widget build(BuildContext context) {

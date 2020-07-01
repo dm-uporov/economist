@@ -1,25 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutterapp2020/categories/CategoriesChartWidget.dart';
 
 import 'datepicker/DatePicker.dart';
+import 'model/Category.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: MyHomePage(title: 'Flutter Demo Home Page'),
@@ -37,13 +29,55 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  static const double datePickerHeight = 100;
+  static const double categoriesChartHeight = 250;
+
+  final List<Category> categories = [
+    Category(1, "Продукты", 19923.3, Colors.blue),
+    Category(2, "Рестораны, кафе", 24142.1, Colors.amber),
+    Category(3, "Бытовые расходы", 2123.42, Colors.red),
+    Category(4, "Подарки", 10000.23, Colors.brown),
+    Category(5, "Транспорт", 7642.99, Colors.green),
+  ];
+
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final double datePickerLineHeight = 48.0;
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: DatePicker(MediaQuery.of(context).size.width),
+      body: Column(
+        verticalDirection: VerticalDirection.down,
+        children: <Widget>[
+          Container(
+            height: datePickerHeight,
+            child: DatePicker(width, datePickerLineHeight),
+          ),
+          Container(
+            height: categoriesChartHeight,
+            child: CategoriesChartWidget(categoriesChartHeight, categories),
+          ),
+        ],
+      ),
+//      body: Stack(
+//        children: <Widget>[
+//          Padding(
+//            padding: EdgeInsets.only(
+//              top: datePickerLineHeight + _contentMargin,
+//              left: _contentMargin,
+//              right: _contentMargin,
+//              bottom: _contentMargin,
+//            ),
+//            child: CategoriesWidget(datePickerLineHeight),
+//          ),
+//          DatePicker(width, datePickerLineHeight),
+//        ],
+//      ),
     );
   }
 }
