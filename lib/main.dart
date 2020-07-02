@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutterapp2020/categories/CategoriesChartWidget.dart';
+import 'package:flutter/rendering.dart';
 
+import 'categories/CategoriesChartDelegate.dart';
 import 'datepicker/DatePicker.dart';
 import 'model/Category.dart';
 
@@ -29,7 +30,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   static const double datePickerHeight = 200;
   static const double categoriesChartHeight = 250;
 
@@ -46,21 +46,46 @@ class _MyHomePageState extends State<MyHomePage> {
     final width = MediaQuery.of(context).size.width;
     final double datePickerLineHeight = 48.0;
 
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
       body: Stack(
         children: <Widget>[
-          Container(
-            padding: EdgeInsets.only(top: datePickerHeight),
-            height: categoriesChartHeight,
-            child: CategoriesChartWidget(categoriesChartHeight, categories),
+          Padding(
+            padding: EdgeInsets.only(top: datePickerLineHeight),
+            child: CustomScrollView(
+              slivers: <Widget>[
+                SliverPersistentHeader(
+                  delegate: CategoriesChartDelegate(categories),
+                  pinned: true,
+                ),
+                SliverFixedExtentList(
+                  delegate: SliverChildListDelegate(
+                    categoriesListOfWidgets(categories),
+                  ),
+                  itemExtent: 30,
+                )
+              ],
+            ),
           ),
           DatePicker(width, datePickerLineHeight, 40),
         ],
       ),
     );
+  }
+
+  List<Widget> categoriesListOfWidgets(List<Category> categories) {
+    List<Widget> result = [];
+    List<Widget> list = categories.map((item) {
+      return Text(item.title);
+    }).toList();
+
+    result.addAll(list);
+    result.addAll(list);
+    result.addAll(list);
+    result.addAll(list);
+    result.addAll(list);
+    return result;
   }
 }

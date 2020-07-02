@@ -18,24 +18,33 @@ class CategoriesChartWidget extends StatefulWidget {
 
 class _CategoriesChartWidgetState extends State<CategoriesChartWidget> {
   static const degreesSum = 360;
-  static const holeRadiusPercents = 70.0;
+  static const holeRadiusPercents = 66.6;
 
-  final double chartHeight;
-  final double tileRadius;
+  double chartHeight;
+  double tileRadius;
   double holeRadius;
   List<Category> categories;
 
-  _CategoriesChartWidgetState(this.chartHeight, this.categories)
-      : tileRadius = chartHeight / 2 {
-    holeRadius = tileRadius / 100 * holeRadiusPercents;
+  _CategoriesChartWidgetState(this.chartHeight, this.categories) {
+    recompute();
   }
 
   @override
   void didUpdateWidget(CategoriesChartWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (categories != oldWidget.categories) {
-      setState(() => categories = oldWidget.categories);
+    if (categories != oldWidget.categories ||
+        chartHeight != oldWidget.chartHeight) {
+      setState(() {
+        categories = oldWidget.categories;
+        chartHeight = oldWidget.chartHeight;
+        recompute();
+      });
     }
+  }
+
+  void recompute() {
+    tileRadius = chartHeight / 2;
+    holeRadius = tileRadius / 100 * holeRadiusPercents;
   }
 
   @override
