@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutterapp2020/categories/CategoriesChart.dart';
 
-import 'categories/CategoriesChartDelegate.dart';
+import 'categories/CategoriesChart.dart';
 import 'datepicker/DatePicker.dart';
 import 'model/Category.dart';
 
@@ -36,9 +37,12 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<Category> categories = [
     Category(1, "Продукты", 19923.3, Colors.blue),
     Category(2, "Рестораны, кафе", 24142.1, Colors.amber),
-    Category(3, "Бытовые расходы", 2123.42, Colors.red),
-    Category(4, "Подарки", 10000.23, Colors.brown),
-    Category(5, "Транспорт", 7642.99, Colors.green),
+    Category(3, "Бытовые расходы", 2123.42, Colors.cyan),
+    Category(4, "Подарки", 10000.23, Colors.purple),
+    Category(5, "Транспорт", 7642.99, Colors.redAccent),
+    Category(6, "Благотворительность", 13242.99, Colors.yellow),
+    Category(7, "Животные", 12442.99, Colors.teal),
+    Category(8, "Хобби", 24242.99, Colors.deepOrangeAccent),
   ];
 
   @override
@@ -60,12 +64,15 @@ class _MyHomePageState extends State<MyHomePage> {
                   delegate: CategoriesChartDelegate(categories),
                   pinned: true,
                 ),
-                SliverFixedExtentList(
-                  delegate: SliverChildListDelegate(
-                    categoriesListOfWidgets(categories),
+                SliverPadding(
+                  padding: EdgeInsets.only(bottom: 16),
+                  sliver: SliverFixedExtentList(
+                    delegate: SliverChildListDelegate(
+                      categoriesListOfWidgets(categories),
+                    ),
+                    itemExtent: 48,
                   ),
-                  itemExtent: 30,
-                )
+                ),
               ],
             ),
           ),
@@ -78,11 +85,13 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Widget> categoriesListOfWidgets(List<Category> categories) {
     List<Widget> result = [];
     List<Widget> list = categories.map((item) {
-      return Text(item.title);
+      return ListTile(
+        title: Text(item.title),
+        subtitle: Text(item.sum.toString()),
+        leading: CircleAvatar(backgroundColor: item.color),
+      );
     }).toList();
 
-    result.addAll(list);
-    result.addAll(list);
     result.addAll(list);
     result.addAll(list);
     result.addAll(list);
