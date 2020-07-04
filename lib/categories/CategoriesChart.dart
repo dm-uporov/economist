@@ -5,20 +5,21 @@ import 'package:flutterapp2020/model/Category.dart';
 import 'dart:math';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
+const double padding = 20;
+const double maxChartDiameter = 250;
+const double minChartDiameter = 150;
+
 class CategoriesChartDelegate extends SliverPersistentHeaderDelegate {
-  static const double padding = 20;
-  static const double maxChartDiameter = 250;
-  static const double minChartDiameter = 150;
 
   final List<Category> categories;
 
   CategoriesChartDelegate(this.categories);
 
   @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(BuildContext context, double shrinkOffset,
+      bool overlapsContent) {
     return Padding(
-      padding: EdgeInsets.all(padding),
+      padding: EdgeInsets.only(top: padding, bottom: padding),
       child: CustomPaint(
         size: Size(maxChartDiameter, maxChartDiameter),
         painter: CategoriesChartPainter(categories),
@@ -42,6 +43,7 @@ class CategoriesChartDelegate extends SliverPersistentHeaderDelegate {
 class CategoriesChartPainter extends CustomPainter {
   static const holeRadiusPercents = 66.6;
   static const dividerGapDegrees = 5;
+  static const maxElevation = 5;
 
   final List<Category> categories;
 
@@ -49,28 +51,49 @@ class CategoriesChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final centerX = size.width / 2;
-    final centerY = size.height / 2;
+    final width = size.width;
+    final height = size.height;
+
+    final heightDelta = maxChartDiameter - height;
+    final relativeDelta = heightDelta / (maxChartDiameter - minChartDiameter);
+    final shadowHeight = maxElevation * relativeDelta;
+    final tilesShadowHeight = maxElevation - shadowHeight;
+
+    drawBottomShadow(canvas, size, shadowHeight);
+
+    final centerX = width / 2;
+    final centerY = height / 2 - shadowHeight;
     final radius = min(centerX, centerY);
     final center = Offset(centerX, centerY);
 
     final tiles = toTiles(categories, radius);
-    drawTiles(canvas, center, tiles);
+    drawTiles(canvas, center, tiles, tilesShadowHeight);
   }
 
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return oldDelegate is CategoriesChartPainter &&
-        categories != oldDelegate.categories;
+  void drawBottomShadow(Canvas canvas, Size size, double shadowHeight) {
+    final path = Path()
+      ..addRect(Rect.fromPoints(
+          Offset(0, 0), Offset(size.width, size.height)));
+    canvas.drawShadow(
+        path,
+        Colors.black,
+        shadowHeight,
+        false
+    );
+    canvas.drawPath(path, Paint()
+      ..color = ThemeData
+          .light()
+          .scaffoldBackgroundColor);
   }
 
-  void drawTiles(Canvas canvas, Offset center, List<CategoryTile> tiles) {
+  void drawTiles(Canvas canvas, Offset center, List<CategoryTile> tiles, double elevation) {
     final tilesWithPaths = tiles.map((tile) => withPath(tile, center: center));
     tilesWithPaths.forEach((item) {
-      canvas.drawShadow(item.path, Colors.black, 7, false);
+      canvas.drawShadow(item.path, Colors.black, elevation, false);
     });
     tilesWithPaths.forEach((item) {
-      canvas.drawPath(item.path, Paint()..color = item.tile.color);
+      canvas.drawPath(item.path, Paint()
+        ..color = item.tile.color);
     });
   }
 
@@ -94,7 +117,8 @@ class CategoriesChartPainter extends CustomPainter {
 
     return TileWithPath(
       tile: tile,
-      path: Path()..addPolygon(outerPolygon + innerPolygon, true),
+      path: Path()
+        ..addPolygon(outerPolygon + innerPolygon, true),
     );
   }
 
@@ -103,7 +127,7 @@ class CategoriesChartPainter extends CustomPainter {
     final pointsCount = (sizeRadians * 100).toInt();
     final pointDeltaRadians = sizeRadians / pointsCount;
     final pointsRadians =
-        List.generate(pointsCount, (i) => i * pointDeltaRadians + fromRadians);
+    List.generate(pointsCount, (i) => i * pointDeltaRadians + fromRadians);
 
     return pointsRadians.map((radian) {
       return Offset(
@@ -114,7 +138,7 @@ class CategoriesChartPainter extends CustomPainter {
   List<CategoryTile> toTiles(List<Category> categories, double radius) {
     double sum = 0;
     categories.forEach((item) => sum += item.sum);
-    
+
     final length = categories.length;
     final dividersDegreesSum = length > 1 ? length * dividerGapDegrees : 0;
     final tilesDegreesSum = 360 - dividersDegreesSum;
@@ -133,6 +157,12 @@ class CategoriesChartPainter extends CustomPainter {
       return tile;
     }).toList();
     return categoriesTiles;
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return oldDelegate is CategoriesChartPainter &&
+        categories != oldDelegate.categories;
   }
 }
 
