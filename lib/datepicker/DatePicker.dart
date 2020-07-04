@@ -4,7 +4,11 @@ import 'package:flutterapp2020/datepicker/DatePickerLine.dart';
 import 'DatePickerSelector.dart';
 
 class DatePicker extends StatefulWidget {
-  const DatePicker(this.width, this.lineHeight, this.selectorSize);
+  const DatePicker({
+    this.width,
+    this.lineHeight,
+    this.selectorSize,
+  });
 
   /// The full width of date picker line
   final double width;
@@ -12,30 +16,21 @@ class DatePicker extends StatefulWidget {
   /// The height of solid line background
   final double lineHeight;
 
-  /// The diameter of selector bubble, as well as height of picker under the main line
+  /// Diameter of selector bubble, as well as height of picker under the main line
   final double selectorSize;
 
   @override
-  _DatePickerState createState() => _DatePickerState(width, lineHeight, selectorSize);
+  _DatePickerState createState() => _DatePickerState();
 }
 
 class _DatePickerState extends State<DatePicker> {
-  _DatePickerState(this.width, this.lineHeight, this.selectorSize) {
-    datesWithPositions = computeDates(currentDate, width, sectorWidth, 0.0);
+  _DatePickerState() {
+    datesWithPositions = computeDates(currentDate, widget.width, sectorWidth, 0.0);
     firstSelectorDate = currentDate.subtract(Duration(days: 30));
     secondSelectorDate = currentDate;
-    selectorWidth = selectorSize;
-    selectorHeight = lineHeight + selectorSize;
+    selectorWidth = widget.selectorSize;
+    selectorHeight = widget.lineHeight + widget.selectorSize;
   }
-
-  /// The full width of date picker line
-  final double width;
-
-  /// Height of solid line background
-  final double lineHeight;
-
-  /// Diameter of selector bubble, as well as height of picker under the main line
-  final double selectorSize;
 
   /// The init gap between sectors (days by default)
   final double sectorWidth = 10.0;
@@ -72,8 +67,8 @@ class _DatePickerState extends State<DatePicker> {
         Positioned(
           height: selectorHeight,
           child: DatePickerLine(
-            width: width,
-            height: lineHeight,
+            width: widget.width,
+            height: widget.lineHeight,
             sectorWidth: sectorWidth,
             currentDate: currentDate,
             initDates: datesWithPositions,
@@ -89,7 +84,7 @@ class _DatePickerState extends State<DatePicker> {
           width: selectorWidth,
           height: selectorHeight,
           sectorWidth: sectorWidth,
-          lineWidth: width,
+          lineWidth: widget.width,
           circleIncreaseCoefficient: selectorCircleIncreaseCoefficient,
           initDate: firstSelectorDate,
           callback: (date) => firstSelectorDate = date,
@@ -99,7 +94,7 @@ class _DatePickerState extends State<DatePicker> {
           width: selectorWidth,
           height: selectorHeight,
           sectorWidth: sectorWidth,
-          lineWidth: width,
+          lineWidth: widget.width,
           circleIncreaseCoefficient: selectorCircleIncreaseCoefficient,
           initDate: secondSelectorDate,
           callback: (date) => secondSelectorDate = date,

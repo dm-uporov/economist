@@ -76,7 +76,11 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
           ),
-          DatePicker(width, datePickerLineHeight, 40),
+          DatePicker(
+            width: width,
+            lineHeight: datePickerLineHeight,
+            selectorSize: 40,
+          ),
         ],
       ),
     );

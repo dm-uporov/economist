@@ -15,7 +15,7 @@ class CategoriesChartDelegate extends SliverPersistentHeaderDelegate {
       padding: EdgeInsets.only(top: 20),
       child: CustomPaint(
         size: Size(250, 250),
-        painter: _CategoriesChartPainter(categories),
+        painter: CategoriesChartPainter(categories),
       ),
     );
   }
@@ -33,12 +33,12 @@ class CategoriesChartDelegate extends SliverPersistentHeaderDelegate {
   }
 }
 
-class _CategoriesChartPainter extends CustomPainter {
+class CategoriesChartPainter extends CustomPainter {
   static const innerRadiusPercents = 66.6;
 
   final List<Category> categories;
 
-  _CategoriesChartPainter(this.categories);
+  CategoriesChartPainter(this.categories);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -57,7 +57,7 @@ class _CategoriesChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
-    return oldDelegate is _CategoriesChartPainter &&
+    return oldDelegate is CategoriesChartPainter &&
         categories != oldDelegate.categories;
   }
 
