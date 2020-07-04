@@ -15,16 +15,13 @@ class CategoriesChartDelegate extends SliverPersistentHeaderDelegate {
   CategoriesChartDelegate(this.categories);
 
   @override
-  Widget build(BuildContext context, double shrinkOffset,
-      bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Padding(
       padding: EdgeInsets.all(padding),
-      child: ClipPath(
-        clipper: HoleClipper(),
-        child: CustomPaint(
-          size: Size(maxChartDiameter, maxChartDiameter),
-          painter: CategoriesChartPainter(categories),
-        ),
+      child: CustomPaint(
+        size: Size(maxChartDiameter, maxChartDiameter),
+        painter: CategoriesChartPainter(categories),
       ),
     );
   }
@@ -43,27 +40,22 @@ class CategoriesChartDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class CategoriesChartPainter extends CustomPainter {
+  static const holeRadiusPercents = 66.6;
+  static const dividerGapDegrees = 5;
+
   final List<Category> categories;
 
   CategoriesChartPainter(this.categories);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final height = size.height;
-    final radius = height / 2;
-    final path = Path();
-
     final centerX = size.width / 2;
     final centerY = size.height / 2;
-    path.addOval(
-        Rect.fromCircle(center: Offset(centerX, centerY), radius: radius));
-    canvas.drawShadow(path, Colors.black38, 10, true);
+    final radius = min(centerX, centerY);
+    final center = Offset(centerX, centerY);
 
     final tiles = toTiles(categories, radius);
-    drawTiles(canvas, size, tiles);
-
-    final dividers = getDividers(tiles);
-    drawDividers(canvas, size, dividers);
+    drawTiles(canvas, center, tiles);
   }
 
   @override
@@ -72,109 +64,76 @@ class CategoriesChartPainter extends CustomPainter {
         categories != oldDelegate.categories;
   }
 
-  void drawTiles(Canvas canvas, Size size, List<CategoryTile> tiles) {
-    tiles.forEach((tile) => drawTile(canvas, size, tile));
+  void drawTiles(Canvas canvas, Offset center, List<CategoryTile> tiles) {
+    final tilesWithPaths = tiles.map((tile) => withPath(tile, center: center));
+    tilesWithPaths.forEach((item) {
+      canvas.drawShadow(item.path, Colors.black, 7, false);
+    });
+    tilesWithPaths.forEach((item) {
+      canvas.drawPath(item.path, Paint()..color = item.tile.color);
+    });
   }
 
-  void drawTile(Canvas canvas, Size size, CategoryTile tile) {
-    final centerX = size.width / 2;
-    final centerY = size.height / 2;
-    final center = Offset(centerX, centerY);
-
+  TileWithPath withPath(CategoryTile tile, {@required Offset center}) {
     final fromRadians = radians(tile.fromDegree);
     final sizeRadians = radians(tile.sizeDegrees);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: tile.radius),
-      fromRadians,
-      sizeRadians,
-      true,
-      Paint()
-        ..color = tile.color,
+
+    final outerPolygon = arcPolygon(
+      center: center,
+      fromRadians: fromRadians,
+      sizeRadians: sizeRadians,
+      radius: tile.radius,
+    );
+
+    final innerPolygon = arcPolygon(
+      center: center,
+      fromRadians: fromRadians,
+      sizeRadians: sizeRadians,
+      radius: tile.innerRadius,
+    ).reversed.toList();
+
+    return TileWithPath(
+      tile: tile,
+      path: Path()..addPolygon(outerPolygon + innerPolygon, true),
     );
   }
 
-  void drawDividers(Canvas canvas, Size size, List<TileDivider> dividers) {
-    dividers.forEach((divider) => drawDivider(canvas, size, divider));
-  }
+  List<Offset> arcPolygon(
+      {Offset center, double fromRadians, double sizeRadians, double radius}) {
+    final pointsCount = (sizeRadians * 100).toInt();
+    final pointDeltaRadians = sizeRadians / pointsCount;
+    final pointsRadians =
+        List.generate(pointsCount, (i) => i * pointDeltaRadians + fromRadians);
 
-  void drawDivider(Canvas canvas, Size size, TileDivider divider) {
-    final centerX = size.width / 2;
-    final centerY = size.height / 2;
-    final center = Offset(centerX, centerY);
-
-    final atRadians = radians(divider.atDegree);
-
-    final delta = Offset(
-        cos(atRadians) * divider.radius, sin(atRadians) * divider.radius);
-    canvas.drawLine(
-      center,
-      center + delta,
-      Paint()
-        ..color = divider.color
-        ..strokeWidth = 3.0,
-    );
+    return pointsRadians.map((radian) {
+      return Offset(
+          cos(radian) * radius + center.dx, sin(radian) * radius + center.dy);
+    }).toList();
   }
 
   List<CategoryTile> toTiles(List<Category> categories, double radius) {
     double sum = 0;
     categories.forEach((item) => sum += item.sum);
+    
+    final length = categories.length;
+    final dividersDegreesSum = length > 1 ? length * dividerGapDegrees : 0;
+    final tilesDegreesSum = 360 - dividersDegreesSum;
 
     double nextTileStartAngle = 0;
 
     final categoriesTiles = categories.map((item) {
-      final tileDegrees = item.sum / sum * 360;
+      final tileDegrees = item.sum / sum * tilesDegreesSum;
       final tile = CategoryTile(
-        color: item.color,
-        fromDegree: nextTileStartAngle,
-        sizeDegrees: tileDegrees,
-        radius: radius,
-      );
-      nextTileStartAngle += tileDegrees;
+          color: item.color,
+          fromDegree: nextTileStartAngle,
+          sizeDegrees: tileDegrees,
+          radius: radius,
+          innerRadius: radius / 100 * holeRadiusPercents);
+      nextTileStartAngle += tileDegrees + dividerGapDegrees;
       return tile;
     }).toList();
     return categoriesTiles;
   }
-
-  List<TileDivider> getDividers(List<CategoryTile> tiles) {
-    List<TileDivider> dividers = [];
-    if (tiles.length > 1) {
-      tiles.forEach((tile) {
-        dividers.add(TileDivider(
-          color: Colors.white,
-          atDegree: tile.fromDegree,
-          radius: tile.radius,
-        ));
-        dividers.add(TileDivider(
-          color: Colors.white,
-          atDegree: tile.fromDegree + tile.sizeDegrees,
-          radius: tile.radius,
-        ));
-      });
-    }
-    return dividers;
-  }
-}
-
-class HoleClipper extends CustomClipper<Path> {
-  static const holeRadiusPercents = 66.6;
-
-  @override
-  getClip(Size size) {
-    final outerRadius = size.height / 2;
-    final radius = outerRadius / 100 * holeRadiusPercents;
-    final center = Offset(size.width / 2, size.height / 2);
-
-    return Path()
-      ..addOval(Rect.fromCircle(center: center, radius: radius))
-      ..addRect(Rect.fromLTWH(0.0, 0.0, size.width, size.height))
-      ..fillType = PathFillType.evenOdd;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper oldClipper) {
-    return false;
-  }
-
 }
 
 class CategoryTile {
@@ -183,22 +142,22 @@ class CategoryTile {
     @required this.fromDegree,
     @required this.sizeDegrees,
     @required this.radius,
+    @required this.innerRadius,
   });
 
   final Color color;
   final double fromDegree;
   final double sizeDegrees;
   final double radius;
+  final double innerRadius;
 }
 
-class TileDivider {
-  const TileDivider({
-    @required this.color,
-    @required this.atDegree,
-    @required this.radius,
+class TileWithPath {
+  TileWithPath({
+    @required this.tile,
+    @required this.path,
   });
 
-  final Color color;
-  final double atDegree;
-  final double radius;
+  final CategoryTile tile;
+  final Path path;
 }
