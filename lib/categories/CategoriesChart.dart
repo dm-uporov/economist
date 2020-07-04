@@ -1,30 +1,39 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutterapp2020/model/Category.dart';
 import 'dart:math';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
 class CategoriesChartDelegate extends SliverPersistentHeaderDelegate {
+  static const double padding = 20;
+  static const double maxChartDiameter = 250;
+  static const double minChartDiameter = 150;
+
   final List<Category> categories;
 
   CategoriesChartDelegate(this.categories);
 
   @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(BuildContext context, double shrinkOffset,
+      bool overlapsContent) {
     return Padding(
-      padding: EdgeInsets.only(top: 20),
-      child: CustomPaint(
-        size: Size(250, 250),
-        painter: CategoriesChartPainter(categories),
+      padding: EdgeInsets.all(padding),
+      child: ClipPath(
+        clipper: HoleClipper(),
+        child: CustomPaint(
+          size: Size(maxChartDiameter, maxChartDiameter),
+          painter: CategoriesChartPainter(categories),
+        ),
       ),
     );
   }
 
   @override
-  double get maxExtent => 270;
+  double get maxExtent => maxChartDiameter + 2 * padding;
 
   @override
-  double get minExtent => 170;
+  double get minExtent => minChartDiameter + 2 * padding;
 
   @override
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
@@ -34,8 +43,6 @@ class CategoriesChartDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class CategoriesChartPainter extends CustomPainter {
-  static const innerRadiusPercents = 66.6;
-
   final List<Category> categories;
 
   CategoriesChartPainter(this.categories);
@@ -44,15 +51,19 @@ class CategoriesChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final height = size.height;
     final radius = height / 2;
+    final path = Path();
+
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    path.addOval(
+        Rect.fromCircle(center: Offset(centerX, centerY), radius: radius));
+    canvas.drawShadow(path, Colors.black38, 10, true);
 
     final tiles = toTiles(categories, radius);
     drawTiles(canvas, size, tiles);
 
     final dividers = getDividers(tiles);
     drawDividers(canvas, size, dividers);
-
-    final innerRadius = radius / 100 * innerRadiusPercents;
-    drawHole(canvas, size, innerRadius);
   }
 
   @override
@@ -77,7 +88,8 @@ class CategoriesChartPainter extends CustomPainter {
       fromRadians,
       sizeRadians,
       true,
-      Paint()..color = tile.color,
+      Paint()
+        ..color = tile.color,
     );
   }
 
@@ -101,14 +113,6 @@ class CategoriesChartPainter extends CustomPainter {
         ..color = divider.color
         ..strokeWidth = 3.0,
     );
-  }
-
-  void drawHole(Canvas canvas, Size size, double radius) {
-    final centerX = size.width / 2;
-    final centerY = size.height / 2;
-    final center = Offset(centerX, centerY);
-
-    canvas.drawCircle(center, radius, Paint()..color = Colors.white);
   }
 
   List<CategoryTile> toTiles(List<Category> categories, double radius) {
@@ -149,6 +153,28 @@ class CategoriesChartPainter extends CustomPainter {
     }
     return dividers;
   }
+}
+
+class HoleClipper extends CustomClipper<Path> {
+  static const holeRadiusPercents = 66.6;
+
+  @override
+  getClip(Size size) {
+    final outerRadius = size.height / 2;
+    final radius = outerRadius / 100 * holeRadiusPercents;
+    final center = Offset(size.width / 2, size.height / 2);
+
+    return Path()
+      ..addOval(Rect.fromCircle(center: center, radius: radius))
+      ..addRect(Rect.fromLTWH(0.0, 0.0, size.width, size.height))
+      ..fillType = PathFillType.evenOdd;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper oldClipper) {
+    return false;
+  }
+
 }
 
 class CategoryTile {

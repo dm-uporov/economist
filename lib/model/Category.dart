@@ -21,4 +21,13 @@ class Category {
   int get hashCode {
     return id + title.hashCode + sum.toInt() + color.value;
   }
+
+  Category copy({int id, String title, double sum, Color color}) {
+    return Category(
+      id ?? this.id,
+      title ?? this.title,
+      sum ?? this.sum,
+      color ?? this.color
+    );
+  }
 }

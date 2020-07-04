@@ -5,9 +5,10 @@ import 'DatePickerSelector.dart';
 
 class DatePicker extends StatefulWidget {
   const DatePicker({
-    this.width,
-    this.lineHeight,
-    this.selectorSize,
+    @required this.width,
+    @required this.lineHeight,
+    @required this.selectorSize,
+    @required this.callback,
   });
 
   /// The full width of date picker line
@@ -18,6 +19,8 @@ class DatePicker extends StatefulWidget {
 
   /// Diameter of selector bubble, as well as height of picker under the main line
   final double selectorSize;
+
+  final DatesUpdatesCallback callback;
 
   @override
   _DatePickerState createState() =>
@@ -97,7 +100,12 @@ class _DatePickerState extends State<DatePicker> {
           lineWidth: width,
           circleIncreaseCoefficient: selectorCircleIncreaseCoefficient,
           initDate: firstSelectorDate,
-          callback: (date) => firstSelectorDate = date,
+          callback: (date) {
+            if (firstSelectorDate != date) {
+              firstSelectorDate = date;
+              _onDatesUpdated();
+            }
+          },
         ),
         DatePickerSelector(
           datesWithPositions,
@@ -107,9 +115,24 @@ class _DatePickerState extends State<DatePicker> {
           lineWidth: width,
           circleIncreaseCoefficient: selectorCircleIncreaseCoefficient,
           initDate: secondSelectorDate,
-          callback: (date) => secondSelectorDate = date,
+          callback: (date) {
+            if (secondSelectorDate != date) {
+              secondSelectorDate = date;
+              _onDatesUpdated();
+            }
+          },
         ),
       ],
     );
   }
+
+  void _onDatesUpdated() {
+    if (firstSelectorDate.isBefore(secondSelectorDate)) {
+      widget.callback(firstSelectorDate, secondSelectorDate);
+    } else {
+      widget.callback(secondSelectorDate, firstSelectorDate);
+    }
+  }
 }
+
+typedef DatesUpdatesCallback = Function(DateTime from, DateTime to);

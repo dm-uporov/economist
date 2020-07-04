@@ -5,6 +5,7 @@ import 'package:flutterapp2020/categories/CategoriesChart.dart';
 import 'categories/CategoriesChart.dart';
 import 'datepicker/DatePicker.dart';
 import 'model/Category.dart';
+import 'dart:math';
 
 void main() => runApp(MyApp());
 
@@ -34,7 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
   static const double datePickerHeight = 200;
   static const double categoriesChartHeight = 250;
 
-  final List<Category> categories = [
+  List<Category> categories = [
     Category(1, "Продукты", 19923.3, Colors.blue),
     Category(2, "Рестораны, кафе", 24142.1, Colors.amber),
     Category(3, "Бытовые расходы", 2123.42, Colors.cyan),
@@ -64,14 +65,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   delegate: CategoriesChartDelegate(categories),
                   pinned: true,
                 ),
-                SliverPadding(
-                  padding: EdgeInsets.only(bottom: 16),
-                  sliver: SliverFixedExtentList(
-                    delegate: SliverChildListDelegate(
-                      categoriesListOfWidgets(categories),
-                    ),
-                    itemExtent: 48,
+                SliverFixedExtentList(
+                  delegate: SliverChildListDelegate(
+                    categoriesListOfWidgets(categories),
                   ),
+                  itemExtent: 48,
                 ),
               ],
             ),
@@ -80,6 +78,22 @@ class _MyHomePageState extends State<MyHomePage> {
             width: width,
             lineHeight: datePickerLineHeight,
             selectorSize: 40,
+            callback: (from, to) {
+              setState(() {
+                List<Category> newCategories = [];
+                categories.forEach((item) {
+                  final random = Random();
+
+                  final maxDelta = item.sum / 10;
+                  final delta = random.nextInt(maxDelta.toInt());
+                  final sign = random.nextBool();
+
+                  final newSum = sign ? item.sum - delta : item.sum + delta;
+                  newCategories.add(item.copy(sum: newSum));
+                });
+                categories = newCategories;
+              });
+            },
           ),
         ],
       ),
