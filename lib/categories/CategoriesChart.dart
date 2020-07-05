@@ -5,26 +5,28 @@ import 'package:flutterapp2020/model/Category.dart';
 import 'dart:math';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
+import 'CategoriesTween.dart';
+
 const double padding = 20;
 const double maxChartDiameter = 250;
 const double minChartDiameter = 150;
 
 class CategoriesChartDelegate extends SliverPersistentHeaderDelegate {
-
   final List<Category> categories;
 
   CategoriesChartDelegate(this.categories);
 
   @override
-  Widget build(BuildContext context, double shrinkOffset,
-      bool overlapsContent) {
-    return Padding(
-      padding: EdgeInsets.only(top: padding, bottom: padding),
-      child: CustomPaint(
-        size: Size(maxChartDiameter, maxChartDiameter),
-        painter: CategoriesChartPainter(categories),
-      ),
-    );
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return AnimatedCategoriesChart(categories);
+//    return Padding(
+//      padding: EdgeInsets.only(top: padding, bottom: padding),
+//      child: CustomPaint(
+//        size: Size(maxChartDiameter, maxChartDiameter),
+//        painter: CategoriesChartPainter(categories),
+//      ),
+//    );
   }
 
   @override
@@ -37,6 +39,52 @@ class CategoriesChartDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
     return oldDelegate is CategoriesChartDelegate &&
         categories != oldDelegate.categories;
+  }
+}
+
+class AnimatedCategoriesChart extends StatefulWidget {
+  final List<Category> categories;
+
+  AnimatedCategoriesChart(this.categories);
+
+  @override
+  _AnimatedCategoriesChartState createState() =>
+      _AnimatedCategoriesChartState(categories);
+}
+
+class _AnimatedCategoriesChartState extends State<AnimatedCategoriesChart> {
+  List<Category> oldCategories;
+
+  _AnimatedCategoriesChartState(List<Category> categories) {
+    oldCategories = categories;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder(
+      tween: CategoriesTween(oldCategories, widget.categories),
+      duration: Duration(milliseconds: 200),
+      builder: (BuildContext context, List<Category> categories, Widget child) {
+        return Padding(
+          padding: EdgeInsets.only(top: padding, bottom: padding),
+          child: CustomPaint(
+            size: Size(maxChartDiameter, maxChartDiameter),
+            painter: CategoriesChartPainter(categories),
+          ),
+        );
+      },
+//        child: Icon(Icons.aspect_ratio),
+    );
+  }
+
+  @override
+  void didUpdateWidget(AnimatedCategoriesChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.categories != oldWidget.categories) {
+      setState(() {
+        oldCategories = oldWidget.categories;
+      });
+    }
   }
 }
 
@@ -72,33 +120,26 @@ class CategoriesChartPainter extends CustomPainter {
 
   void drawBottomShadow(Canvas canvas, Size size, double shadowHeight) {
     final path = Path()
-      ..addRect(Rect.fromPoints(
-          Offset(0, 0), Offset(size.width, size.height)));
-    canvas.drawShadow(
-        path,
-        Colors.black,
-        shadowHeight,
-        false
-    );
-    canvas.drawPath(path, Paint()
-      ..color = ThemeData
-          .light()
-          .scaffoldBackgroundColor);
+      ..addRect(Rect.fromPoints(Offset(0, 0), Offset(size.width, size.height)));
+    canvas.drawShadow(path, Colors.black, shadowHeight, false);
+    canvas.drawPath(
+        path, Paint()..color = ThemeData.light().scaffoldBackgroundColor);
   }
 
-  void drawTiles(Canvas canvas, Offset center, List<CategoryTile> tiles, double elevation) {
+  void drawTiles(Canvas canvas, Offset center, List<CategoryTile> tiles,
+      double elevation) {
     final tilesWithPaths = tiles.map((tile) => withPath(tile, center: center));
     tilesWithPaths.forEach((item) {
       canvas.drawShadow(item.path, Colors.black, elevation, false);
     });
     tilesWithPaths.forEach((item) {
-      canvas.drawPath(item.path, Paint()
-        ..color = item.tile.color);
+      canvas.drawPath(item.path, Paint()..color = item.tile.color);
     });
   }
 
   TileWithPath withPath(CategoryTile tile, {@required Offset center}) {
-    final fromRadians = radians(tile.fromDegree);
+    /// `+ 90` to split the ring exactly at the bottom center
+    final fromRadians = radians(tile.fromDegree + 90);
     final sizeRadians = radians(tile.sizeDegrees);
 
     final outerPolygon = arcPolygon(
@@ -117,8 +158,7 @@ class CategoriesChartPainter extends CustomPainter {
 
     return TileWithPath(
       tile: tile,
-      path: Path()
-        ..addPolygon(outerPolygon + innerPolygon, true),
+      path: Path()..addPolygon(outerPolygon + innerPolygon, true),
     );
   }
 
@@ -127,7 +167,7 @@ class CategoriesChartPainter extends CustomPainter {
     final pointsCount = (sizeRadians * 100).toInt();
     final pointDeltaRadians = sizeRadians / pointsCount;
     final pointsRadians =
-    List.generate(pointsCount, (i) => i * pointDeltaRadians + fromRadians);
+        List.generate(pointsCount, (i) => i * pointDeltaRadians + fromRadians);
 
     return pointsRadians.map((radian) {
       return Offset(

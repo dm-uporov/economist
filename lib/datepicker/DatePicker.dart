@@ -9,6 +9,8 @@ class DatePicker extends StatefulWidget {
     @required this.lineHeight,
     @required this.selectorSize,
     @required this.callback,
+    @required this.initFromDate,
+    @required this.initToDate,
   });
 
   /// The full width of date picker line
@@ -20,18 +22,30 @@ class DatePicker extends StatefulWidget {
   /// Diameter of selector bubble, as well as height of picker under the main line
   final double selectorSize;
 
+  final DateTime initFromDate;
+  final DateTime initToDate;
+
   final DatesUpdatesCallback callback;
 
   @override
-  _DatePickerState createState() =>
-      _DatePickerState(width, lineHeight, selectorSize);
+  _DatePickerState createState() => _DatePickerState(
+        width,
+        lineHeight,
+        selectorSize,
+        initFromDate,
+        initToDate,
+      );
 }
 
 class _DatePickerState extends State<DatePicker> {
-  _DatePickerState(this.width, this.lineHeight, this.selectorSize) {
+  _DatePickerState(
+    this.width,
+    this.lineHeight,
+    this.selectorSize,
+    this.firstSelectorDate,
+    this.secondSelectorDate,
+  ) {
     datesWithPositions = computeDates(currentDate, width, sectorWidth, 0.0);
-    firstSelectorDate = currentDate.subtract(Duration(days: 30));
-    secondSelectorDate = currentDate;
     selectorWidth = selectorSize;
     selectorHeight = lineHeight + selectorSize;
   }
