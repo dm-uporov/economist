@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide TextStyle;
 import 'package:flutterapp2020/model/Category.dart';
 import 'dart:math';
 import 'package:vector_math/vector_math.dart' hide Colors;
@@ -80,7 +80,7 @@ class CategoriesChartPainter extends CustomPainter {
   static const padding = 16;
   static const holeRadiusPercents = 66.6;
   static const dividerGapDegrees = 5;
-  static const maxElevation = 5;
+  static const maxElevation = 4;
 
   final List<Category> categories;
 
@@ -101,9 +101,18 @@ class CategoriesChartPainter extends CustomPainter {
     final centerX = width / 2;
     final centerY = height / 2;
     final radius = min(centerX, centerY) - padding;
-    final center = Offset(centerX, centerY);
+    final innerRadius = radius / 100 * holeRadiusPercents;
 
-    final tiles = toTiles(categories, radius);
+    final leftCenterX = radius + padding;
+    final centerDelta = centerX - leftCenterX;
+    final circleCenterX = centerX - relativeDelta * centerDelta;
+
+    final center = Offset(circleCenterX, centerY);
+
+    double sum = sumOf(categories);
+    drawSum(canvas, center, innerRadius, sum.toStringAsFixed(1));
+
+    final tiles = toTiles(categories, sum, radius, innerRadius);
     drawTiles(canvas, center, tiles, tilesShadowHeight);
   }
 
@@ -124,6 +133,26 @@ class CategoriesChartPainter extends CustomPainter {
     tilesWithPaths.forEach((item) {
       canvas.drawPath(item.path, Paint()..color = item.tile.color);
     });
+  }
+
+  void drawSum(Canvas canvas, Offset center, double innerRadius, String sum) {
+    final padding = 8;
+    final length = sum.length;
+    final width = (innerRadius - padding) * 2;
+    final fontSize = width / length * 1.5;
+
+    final paragraphBuilder = ParagraphBuilder(ParagraphStyle(
+      textAlign: TextAlign.center,
+      fontWeight: FontWeight.bold,
+      maxLines: 1,
+      fontSize: fontSize,
+    ));
+    paragraphBuilder.pushStyle(TextStyle(color: Colors.black45));
+    paragraphBuilder.addText(sum);
+    final paragraph = paragraphBuilder.build();
+    paragraph.layout(ParagraphConstraints(width: width));
+
+    canvas.drawParagraph(paragraph, Offset(center.dx - width / 2, center.dy - fontSize / 2));
   }
 
   TileWithPath withPath(CategoryTile tile, {@required Offset center}) {
@@ -164,10 +193,8 @@ class CategoriesChartPainter extends CustomPainter {
     }).toList();
   }
 
-  List<CategoryTile> toTiles(List<Category> categories, double radius) {
-    double sum = 0;
-    categories.forEach((item) => sum += item.sum);
-
+  List<CategoryTile> toTiles(List<Category> categories, double sum,
+      double radius, double innerRadius) {
     final length = categories.length;
     final dividersDegreesSum = length > 1 ? length * dividerGapDegrees : 0;
     final tilesDegreesSum = 360 - dividersDegreesSum;
@@ -181,7 +208,7 @@ class CategoriesChartPainter extends CustomPainter {
           fromDegree: nextTileStartAngle,
           sizeDegrees: tileDegrees,
           radius: radius,
-          innerRadius: radius / 100 * holeRadiusPercents);
+          innerRadius: innerRadius);
       nextTileStartAngle += tileDegrees + dividerGapDegrees;
       return tile;
     }).toList();
@@ -192,6 +219,12 @@ class CategoriesChartPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) {
     return oldDelegate is CategoriesChartPainter &&
         categories != oldDelegate.categories;
+  }
+
+  double sumOf(List<Category> categories) {
+    double sum = 0;
+    categories.forEach((item) => sum += item.sum);
+    return sum;
   }
 }
 

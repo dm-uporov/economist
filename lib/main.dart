@@ -32,9 +32,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  static const double datePickerHeight = 200;
-  static const double categoriesChartHeight = 250;
-
   final DateTime now;
   final DateTime monthAgo;
 
@@ -107,6 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final double datePickerLineHeight = 48.0;
+    final double datePickerSelectorSize = 48.0;
 
     return Scaffold(
       appBar: AppBar(
@@ -120,11 +118,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 delegate: CategoriesChartDelegate(purchasesInSelectedPeriod),
                 pinned: true,
               ),
-              SliverFixedExtentList(
-                delegate: SliverChildListDelegate(
-                  categoriesListOfWidgets(purchasesInSelectedPeriod),
+              SliverPadding(
+                padding: EdgeInsets.only(bottom: datePickerLineHeight + datePickerSelectorSize / 2),
+                sliver: SliverFixedExtentList(
+                  delegate: SliverChildListDelegate(
+                    categoriesListOfWidgets(purchasesInSelectedPeriod),
+                  ),
+                  itemExtent: 48,
                 ),
-                itemExtent: 48,
               ),
             ],
           ),
@@ -133,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
             initToDate: now,
             width: width,
             lineHeight: datePickerLineHeight,
-            selectorSize: 48,
+            selectorSize: datePickerSelectorSize,
             callback: (from, to) {
               setState(() => computePurchasesInSelectedPeriod(from, to));
             },
