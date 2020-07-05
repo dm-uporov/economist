@@ -7,8 +7,7 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 
 import 'CategoriesTween.dart';
 
-const double padding = 20;
-const double maxChartDiameter = 250;
+const double maxChartDiameter = 300;
 const double minChartDiameter = 150;
 
 class CategoriesChartDelegate extends SliverPersistentHeaderDelegate {
@@ -20,20 +19,13 @@ class CategoriesChartDelegate extends SliverPersistentHeaderDelegate {
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return AnimatedCategoriesChart(categories);
-//    return Padding(
-//      padding: EdgeInsets.only(top: padding, bottom: padding),
-//      child: CustomPaint(
-//        size: Size(maxChartDiameter, maxChartDiameter),
-//        painter: CategoriesChartPainter(categories),
-//      ),
-//    );
   }
 
   @override
-  double get maxExtent => maxChartDiameter + 2 * padding;
+  double get maxExtent => maxChartDiameter;
 
   @override
-  double get minExtent => minChartDiameter + 2 * padding;
+  double get minExtent => minChartDiameter;
 
   @override
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
@@ -65,15 +57,11 @@ class _AnimatedCategoriesChartState extends State<AnimatedCategoriesChart> {
       tween: CategoriesTween(oldCategories, widget.categories),
       duration: Duration(milliseconds: 200),
       builder: (BuildContext context, List<Category> categories, Widget child) {
-        return Padding(
-          padding: EdgeInsets.only(top: padding, bottom: padding),
-          child: CustomPaint(
-            size: Size(maxChartDiameter, maxChartDiameter),
-            painter: CategoriesChartPainter(categories),
-          ),
+        return CustomPaint(
+          size: Size(maxChartDiameter, maxChartDiameter),
+          painter: CategoriesChartPainter(categories),
         );
       },
-//        child: Icon(Icons.aspect_ratio),
     );
   }
 
@@ -89,6 +77,7 @@ class _AnimatedCategoriesChartState extends State<AnimatedCategoriesChart> {
 }
 
 class CategoriesChartPainter extends CustomPainter {
+  static const padding = 16;
   static const holeRadiusPercents = 66.6;
   static const dividerGapDegrees = 5;
   static const maxElevation = 5;
@@ -110,8 +99,8 @@ class CategoriesChartPainter extends CustomPainter {
     drawBottomShadow(canvas, size, shadowHeight);
 
     final centerX = width / 2;
-    final centerY = height / 2 - shadowHeight;
-    final radius = min(centerX, centerY);
+    final centerY = height / 2;
+    final radius = min(centerX, centerY) - padding;
     final center = Offset(centerX, centerY);
 
     final tiles = toTiles(categories, radius);

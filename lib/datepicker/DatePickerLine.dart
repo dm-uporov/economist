@@ -211,15 +211,13 @@ class _DatesPainter extends CustomPainter {
         _strokePaint = Paint()
           ..color = Colors.white70
           ..strokeWidth = sectorStrokeWidth,
-        _monthsDividerPaint = Paint()
-          ..color = Colors.white70
-          ..strokeWidth = sectorStrokeWidth,
         _titleTextStyle = TextStyle(
+          backgroundColor: Colors.blue,
           color: Colors.white70,
           fontSize: titleTextSize,
         ),
         _subtitleTextStyle = TextStyle(
-          color: Colors.black54,
+          color: Colors.white70,
           fontSize: subtitleTextSize,
         );
 
@@ -237,7 +235,6 @@ class _DatesPainter extends CustomPainter {
   final double _bigSectorsOffset = 5;
 
   final Paint _strokePaint;
-  final Paint _monthsDividerPaint;
   final TextStyle _titleTextStyle;
   final TextStyle _subtitleTextStyle;
   final TextDirection _textDirection = TextDirection.ltr;
@@ -250,18 +247,19 @@ class _DatesPainter extends CustomPainter {
 
       if (date.month != date.add(ONE_DAY).month) {
         // draw big stroke
-        drawStroke(canvas, position, _monthsDividerStrokeHeight,
-            paint: _monthsDividerPaint);
+//        drawStroke(canvas, position, _monthsDividerStrokeHeight, paint: _monthsDividerPaint);
+        drawStroke(canvas, position, _bigSectorStrokeHeight);
         if (date.day % _bigSectorsOffset == 0) {
           drawSubtitle(canvas, position, "${date.day}");
         }
       } else if (date.day % _bigSectorsOffset == 0) {
         // draw small stroke with subtitle
-        drawStroke(canvas, position, _bigSectorStrokeHeight);
+//        drawStroke(canvas, position, _bigSectorStrokeHeight);
+        drawStroke(canvas, position, _sectorStrokeHeight);
         drawSubtitle(canvas, position, "${date.day}");
       } else {
         // draw just small stroke
-        drawStroke(canvas, position, _sectorStrokeHeight);
+//        drawStroke(canvas, position, _sectorStrokeHeight);
       }
 
       if (date.day == MIDDLE_DAY_OF_MONTH) {
@@ -274,9 +272,9 @@ class _DatesPainter extends CustomPainter {
   void drawStroke(Canvas canvas, double xPosition, double height,
       {Paint paint}) {
     canvas.drawLine(
-      Offset(xPosition, _mainLineHeight - height),
-      Offset(xPosition, _mainLineHeight),
-      paint == null ? _strokePaint : paint,
+      Offset(xPosition, 0),
+      Offset(xPosition, height),
+      _strokePaint,
     );
   }
 
@@ -309,7 +307,7 @@ class _DatesPainter extends CustomPainter {
         position -
             (subtitle.length * _subtitleTextSize / 2 / 2) -
             (_sectorStrokeWidth / 2),
-        _mainLineHeight,
+        _mainLineHeight - _subtitleTextSize - 2,
       ),
     );
   }

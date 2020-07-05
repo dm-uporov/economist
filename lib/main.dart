@@ -97,17 +97,15 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Category> mockPurchases() {
     List<Category> purchases = [];
     categories.forEach((item) {
-      purchases.add(item.copy(sum: random.nextInt(item.sum.toInt()).toDouble()));
+      purchases
+          .add(item.copy(sum: random.nextInt(item.sum.toInt()).toDouble()));
     });
     return purchases;
   }
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery
-        .of(context)
-        .size
-        .width;
+    final width = MediaQuery.of(context).size.width;
     final double datePickerLineHeight = 48.0;
 
     return Scaffold(
@@ -116,29 +114,26 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Stack(
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(top: datePickerLineHeight),
-            child: CustomScrollView(
-              slivers: <Widget>[
-                SliverPersistentHeader(
-                  delegate: CategoriesChartDelegate(purchasesInSelectedPeriod),
-                  pinned: true,
+          CustomScrollView(
+            slivers: <Widget>[
+              SliverPersistentHeader(
+                delegate: CategoriesChartDelegate(purchasesInSelectedPeriod),
+                pinned: true,
+              ),
+              SliverFixedExtentList(
+                delegate: SliverChildListDelegate(
+                  categoriesListOfWidgets(purchasesInSelectedPeriod),
                 ),
-                SliverFixedExtentList(
-                  delegate: SliverChildListDelegate(
-                    categoriesListOfWidgets(purchasesInSelectedPeriod),
-                  ),
-                  itemExtent: 48,
-                ),
-              ],
-            ),
+                itemExtent: 48,
+              ),
+            ],
           ),
           DatePicker(
             initFromDate: monthAgo,
             initToDate: now,
             width: width,
             lineHeight: datePickerLineHeight,
-            selectorSize: 40,
+            selectorSize: 48,
             callback: (from, to) {
               setState(() => computePurchasesInSelectedPeriod(from, to));
             },

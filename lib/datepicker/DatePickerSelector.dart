@@ -265,7 +265,7 @@ class _DatePickerSelectorPainter extends CustomPainter {
     final circleIncrease =
         circleIncreasedRadius * circleIncreaseCoefficient / 2;
     final circleCurrentRadius = circleRadius + circleIncrease;
-    final circleCenterY = size.height - circleRadius;
+    final circleCenterY = circleRadius;
 
     canvas.drawCircle(
       Offset(centerX, circleCenterY),
@@ -279,7 +279,7 @@ class _DatePickerSelectorPainter extends CustomPainter {
   void _drawDate(Canvas canvas, double x, double y, double radius) {
     final dateString = "${DateFormat.Md().format(date)}";
 
-    double fontSize = radius * 2.5 / dateString.length;
+    double fontSize = radius / 1.5;
 
     TextPainter textPainter = TextPainter(
       text: TextSpan(

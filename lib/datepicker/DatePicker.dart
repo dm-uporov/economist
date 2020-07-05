@@ -47,7 +47,7 @@ class _DatePickerState extends State<DatePicker> {
   ) {
     datesWithPositions = computeDates(currentDate, width, sectorWidth, 0.0);
     selectorWidth = selectorSize;
-    selectorHeight = lineHeight + selectorSize;
+    selectorHeight = lineHeight + selectorSize / 2;
   }
 
   /// The full width of date picker line
@@ -69,7 +69,7 @@ class _DatePickerState extends State<DatePicker> {
   double selectorHeight;
 
   /// max coefficient to selector increase animation
-  final double selectorCircleIncreaseCoefficient = 1.8;
+  final double selectorCircleIncreaseCoefficient = 1.5;
 
   /// because of main use case the date picker (economist)
   /// the current date will appear closer to the end of line
@@ -88,12 +88,14 @@ class _DatePickerState extends State<DatePicker> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.topCenter,
+    return
+      Stack(
+      alignment: Alignment.bottomCenter,
       children: <Widget>[
         Positioned(
-          height: selectorHeight,
-          child: DatePickerLine(
+          height: lineHeight,
+          child:
+          DatePickerLine(
             width: width,
             height: lineHeight,
             sectorWidth: sectorWidth,
